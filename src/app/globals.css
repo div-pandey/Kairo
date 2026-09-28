@@ -1,0 +1,168 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400;1,6..72,600&family=Plus+Jakarta+Sans:wght@500;600;700;800;900&display=swap');
+@import "tailwindcss";
+
+:root {
+  --kairo-paper: #FBF9F5;
+  --kairo-paper-subtle: #F3EFE8;
+  --kairo-sheet: #FFFFFF;
+  --kairo-ink: #111215;
+  --kairo-ink-muted: #65625D;
+  --kairo-ink-faint: #98948C;
+  --kairo-border: #E5DFD5;
+  --kairo-border-dark: #CFC7BB;
+  --kairo-cobalt: #1D4ED8;
+  --kairo-cobalt-ink: #1E3A8A;
+  --kairo-stamp-red: #B91C1C;
+  --kairo-stamp-green: #15803D;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  background-color: var(--kairo-paper);
+}
+
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background-color: var(--kairo-paper);
+  color: var(--kairo-ink);
+  line-height: 1.75;
+  letter-spacing: -0.005em;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom Typography helpers */
+.font-display {
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  letter-spacing: -0.025em;
+}
+
+.font-editorial {
+  font-family: 'Newsreader', Georgia, serif;
+}
+
+.font-mono-code {
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 0.02em;
+}
+
+/* Generous Section Spacing */
+.section-spacious {
+  padding-top: 3.5rem;
+  padding-bottom: 3.5rem;
+}
+@media (min-width: 640px) {
+  .section-spacious {
+    padding-top: 5rem;
+    padding-bottom: 5rem;
+  }
+}
+@media (min-width: 1024px) {
+  .section-spacious {
+    padding-top: 8.5rem;
+    padding-bottom: 8.5rem;
+  }
+}
+
+.hero-spacious {
+  padding-top: 2.5rem;
+  padding-bottom: 3.5rem;
+}
+@media (min-width: 640px) {
+  .hero-spacious {
+    padding-top: 4rem;
+    padding-bottom: 5rem;
+  }
+}
+@media (min-width: 1024px) {
+  .hero-spacious {
+    padding-top: 6rem;
+    padding-bottom: 8.5rem;
+  }
+}
+
+/* Bulletproof spacing utilities for reliable vertical rhythm across all pages */
+.space-y-1 > :not([hidden]) ~ :not([hidden]) { margin-top: 0.25rem !important; }
+.space-y-2 > :not([hidden]) ~ :not([hidden]) { margin-top: 0.5rem !important; }
+.space-y-3 > :not([hidden]) ~ :not([hidden]) { margin-top: 0.75rem !important; }
+.space-y-4 > :not([hidden]) ~ :not([hidden]) { margin-top: 1rem !important; }
+.space-y-5 > :not([hidden]) ~ :not([hidden]) { margin-top: 1.25rem !important; }
+.space-y-6 > :not([hidden]) ~ :not([hidden]) { margin-top: 1.5rem !important; }
+.space-y-8 > :not([hidden]) ~ :not([hidden]) { margin-top: 2rem !important; }
+.space-y-10 > :not([hidden]) ~ :not([hidden]) { margin-top: 2.5rem !important; }
+.space-y-12 > :not([hidden]) ~ :not([hidden]) { margin-top: 3rem !important; }
+.space-y-16 > :not([hidden]) ~ :not([hidden]) { margin-top: 4rem !important; }
+
+.space-x-1 > :not([hidden]) ~ :not([hidden]) { margin-left: 0.25rem !important; }
+.space-x-2 > :not([hidden]) ~ :not([hidden]) { margin-left: 0.5rem !important; }
+.space-x-3 > :not([hidden]) ~ :not([hidden]) { margin-left: 0.75rem !important; }
+.space-x-4 > :not([hidden]) ~ :not([hidden]) { margin-left: 1rem !important; }
+.space-x-6 > :not([hidden]) ~ :not([hidden]) { margin-left: 1.5rem !important; }
+.space-x-8 > :not([hidden]) ~ :not([hidden]) { margin-left: 2rem !important; }
+
+/* Print Shop Aesthetic Details */
+.print-border {
+  border: 1px solid var(--kairo-border);
+}
+
+.print-border-b {
+  border-bottom: 1px solid var(--kairo-border);
+}
+
+.print-border-t {
+  border-top: 1px solid var(--kairo-border);
+}
+
+.paper-sheet {
+  background-color: #FFFFFF;
+  border: 1px solid var(--kairo-border);
+  box-shadow: 0 1px 3px rgba(35, 30, 20, 0.04), 0 8px 24px -6px rgba(35, 30, 20, 0.05);
+}
+
+/* Tear-off / Perforated rule */
+.perforated-rule {
+  background-image: linear-gradient(to right, #B5ADA0 40%, rgba(255, 255, 255, 0) 0%);
+  background-position: bottom;
+  background-size: 8px 1px;
+  background-repeat: repeat-x;
+}
+
+/* Stamp styles */
+.kairo-stamp {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 0.25rem 0.65rem;
+  border-radius: 2px;
+  border: 1px solid currentColor;
+}
+
+/* Form input base styling for comfortable padding */
+input, select, textarea {
+  letter-spacing: -0.01em;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #F3EFE8;
+}
+::-webkit-scrollbar-thumb {
+  background: #CFC7BB;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #98948C;
+}
