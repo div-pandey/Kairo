@@ -41,10 +41,13 @@ export default function PrivacyPage() {
           <section>
             <h2 className="font-display text-lg font-bold text-[#111215] mb-3 flex items-center gap-3">
               <span className="font-mono-code text-xs text-[#1D4ED8]">01</span>
-              Who We Are
+              Who We Are &amp; Registered Entity
             </h2>
-            <p className="text-sm leading-relaxed">
-              Kairo is a campus print service for students of KCC Institute of Technology &amp; Management (KCC ITM), Greater Noida. We are committed to protecting the personal information of every student who uses our platform. This policy explains what data we collect, why we collect it, and how it is handled.
+            <p className="text-sm leading-relaxed mb-2">
+              Kairo is a campus print service for students of KCC Institute of Technology &amp; Management (KCC ITM), Greater Noida, owned and operated by <strong className="text-[#111215]">Kairo Print Services</strong> (MSME Reg: UDYAM-DL-02-0128666, SEA Reg: 2026091948).
+            </p>
+            <p className="text-sm leading-relaxed text-[#65625D]">
+              We are committed to protecting the personal information of every student who uses our platform. This policy explains what data we collect, why we collect it, and how it is handled in accordance with applicable Indian data protection standards.
             </p>
           </section>
 
@@ -173,15 +176,15 @@ export default function PrivacyPage() {
           <section>
             <h2 className="font-display text-lg font-bold text-[#111215] mb-3 flex items-center gap-3">
               <span className="font-mono-code text-xs text-[#1D4ED8]">08</span>
-              Contact
+              Contact &amp; Grievance Redressal
             </h2>
-            <p className="text-sm leading-relaxed">
-              For any privacy-related concerns, write to us at{' '}
-              <a href="mailto:div.pandey.css@gmail.com" className="text-[#1D4ED8] underline underline-offset-2">
-                div.pandey.css@gmail.com
-              </a>
-              .
-            </p>
+            <div className="text-sm leading-relaxed space-y-1.5 bg-[#F3EFE8] border border-[#E5DFD5] p-5 font-mono-code text-xs">
+              <p><strong>Registered Business:</strong> Kairo Print Services</p>
+              <p><strong>Grievance Officer:</strong> Divyansh</p>
+              <p><strong>Email:</strong> <a href="mailto:div.pandey.css@gmail.com" className="text-[#1D4ED8] underline">div.pandey.css@gmail.com</a></p>
+              <p><strong>Phone:</strong> +91 7303598548</p>
+              <p><strong>Office Address:</strong> Block B, B-1301, Mayur Vihar Phase 3, Gharoli Dairy, New Delhi, Delhi - 110096</p>
+            </div>
           </section>
 
         </div>

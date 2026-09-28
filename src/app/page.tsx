@@ -484,13 +484,24 @@ export default function LandingPage() {
           </div>
 
           <div className="flex flex-col sm:flex-row items-center justify-between text-xs font-mono-code text-[#98948C] gap-4">
-            <p>© {new Date().getFullYear()} Kairo. Handcrafted for KCC students.</p>
-            <div className="flex flex-wrap items-center gap-5">
-              <p>B&amp;W ₹3 · Colour ₹5 · No platform fee</p>
-              <span className="text-[#E5DFD5]">|</span>
-              <Link href="/terms" className="hover:text-[#111215] transition-colors">Terms</Link>
-              <Link href="/privacy" className="hover:text-[#111215] transition-colors">Privacy</Link>
-              <Link href="/refund" className="hover:text-[#111215] transition-colors">Refunds</Link>
+            <div className="space-y-1 text-center sm:text-left">
+              <p>© {new Date().getFullYear()} Kairo · Operated by <strong className="text-[#111215]">Kairo Print Services</strong></p>
+              <p className="text-[11px] text-[#A8A29E]">
+                MSME: UDYAM-DL-02-0128666 · SEA: 2026091948 · Reg. Office: B-1301, Mayur Vihar Ph-3, New Delhi 110096
+              </p>
+              <p className="text-[11px] text-[#A8A29E]">
+                Contact: <a href="mailto:div.pandey.css@gmail.com" className="underline hover:text-[#111215]">div.pandey.css@gmail.com</a> · +91 7303598548
+              </p>
+            </div>
+            <div className="flex flex-col sm:items-end gap-2 text-center sm:text-right">
+              <p className="text-[#65625D]">All prices in INR (₹) · B&amp;W ₹3 · Colour ₹5</p>
+              <div className="flex flex-wrap items-center justify-center sm:justify-end gap-4">
+                <Link href="/terms" className="hover:text-[#111215] transition-colors">Terms</Link>
+                <span>·</span>
+                <Link href="/privacy" className="hover:text-[#111215] transition-colors">Privacy</Link>
+                <span>·</span>
+                <Link href="/refund" className="hover:text-[#111215] transition-colors">Refund Policy</Link>
+              </div>
             </div>
           </div>
         </div>

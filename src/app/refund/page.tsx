@@ -41,10 +41,13 @@ export default function RefundPage() {
           <section>
             <h2 className="font-display text-lg font-bold text-[#111215] mb-3 flex items-center gap-3">
               <span className="font-mono-code text-xs text-[#1D4ED8]">01</span>
-              Overview
+              Overview &amp; Registered Entity
             </h2>
-            <p className="text-sm leading-relaxed">
-              Because Kairo is a physical printing service, orders begin processing as soon as payment is confirmed. Please review this policy carefully before placing an order. We keep this process fair and straightforward for all students.
+            <p className="text-sm leading-relaxed mb-2">
+              Kairo is operated by <strong className="text-[#111215]">Kairo Print Services</strong> (MSME Reg: UDYAM-DL-02-0128666, SEA Reg: 2026091948). Because Kairo is a physical document printing service, orders begin processing promptly after payment confirmation.
+            </p>
+            <p className="text-sm leading-relaxed text-[#65625D]">
+              All transactions, billing, and refunds are calculated and processed exclusively in <strong>Indian National Rupees (INR / ₹)</strong>. Please review this policy carefully before placing an order.
             </p>
           </section>
 
@@ -170,18 +173,22 @@ export default function RefundPage() {
           <section>
             <h2 className="font-display text-lg font-bold text-[#111215] mb-3 flex items-center gap-3">
               <span className="font-mono-code text-xs text-[#1D4ED8]">06</span>
-              How to Request a Refund
+              How to Request a Refund &amp; Support Contact
             </h2>
             <p className="text-sm leading-relaxed mb-3">
-              To raise a refund request, email us at{' '}
-              <a href="mailto:div.pandey.css@gmail.com" className="text-[#1D4ED8] underline underline-offset-2">
-                div.pandey.css@gmail.com
-              </a>{' '}
-              with the following details:
+              To raise a refund request or dispute, please contact our support desk:
             </p>
+            <div className="text-sm leading-relaxed space-y-1.5 bg-[#F3EFE8] border border-[#E5DFD5] p-5 font-mono-code text-xs mb-4">
+              <p><strong>Business Name:</strong> Kairo Print Services</p>
+              <p><strong>Contact Person:</strong> Divyansh</p>
+              <p><strong>Support Email:</strong> <a href="mailto:div.pandey.css@gmail.com" className="text-[#1D4ED8] underline">div.pandey.css@gmail.com</a></p>
+              <p><strong>Phone:</strong> +91 7303598548</p>
+              <p><strong>Operating Address:</strong> Block B, B-1301, Mayur Vihar Phase 3, Gharoli Dairy, New Delhi, Delhi - 110096</p>
+            </div>
+            <p className="text-sm leading-relaxed mb-2">Please provide the following details when emailing:</p>
             <ul className="list-none space-y-2 text-sm">
               {[
-                'Your registered name and roll number',
+                'Your registered name and student roll number',
                 'Your Kairo Order ID (visible on the order confirmation screen)',
                 'UPI Transaction Reference / UTR Number',
                 'Brief description of the issue',
@@ -193,7 +200,7 @@ export default function RefundPage() {
               ))}
             </ul>
             <p className="text-sm leading-relaxed mt-3">
-              We typically respond and resolve all refund requests within <strong>7 working days</strong>.
+              We typically acknowledge refund requests within 24 hours and resolve them within <strong>5–7 working days</strong>.
             </p>
           </section>
 

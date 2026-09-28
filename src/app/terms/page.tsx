@@ -42,10 +42,16 @@ export default function TermsPage() {
           <section>
             <h2 className="font-display text-lg font-bold text-[#111215] mb-3 flex items-center gap-3">
               <span className="font-mono-code text-xs text-[#1D4ED8]">01</span>
-              About Kairo
+              About Kairo &amp; Registered Entity
             </h2>
-            <p className="text-sm leading-relaxed">
-              Kairo is a campus print order management service exclusively for students of KCC Institute of Technology &amp; Management (KCC ITM), Greater Noida, Uttar Pradesh. By registering and placing an order through this platform, you agree to be bound by these Terms and Conditions.
+            <p className="text-sm leading-relaxed mb-2">
+              Kairo is an online campus print order management service exclusively for students of KCC Institute of Technology &amp; Management (KCC ITM), Greater Noida, Uttar Pradesh.
+            </p>
+            <p className="text-sm leading-relaxed mb-2">
+              The service is owned and operated by <strong className="text-[#111215]">Kairo Print Services</strong>, a sole proprietorship registered under the Ministry of MSME (Udyam Registration: <strong className="text-[#111215]">UDYAM-DL-02-0128666</strong>) and the Delhi Shops &amp; Establishments Act, 1954 (Registration No: <strong className="text-[#111215]">2026091948</strong>).
+            </p>
+            <p className="text-sm leading-relaxed text-[#65625D]">
+              <strong>Registered Office:</strong> Block B, B-1301, Mayur Vihar Phase 3, Gharoli Dairy, New Delhi, Delhi - 110096, India.
             </p>
           </section>
 
@@ -97,10 +103,13 @@ export default function TermsPage() {
           <section>
             <h2 className="font-display text-lg font-bold text-[#111215] mb-3 flex items-center gap-3">
               <span className="font-mono-code text-xs text-[#1D4ED8]">04</span>
-              Pricing &amp; Payments
+              Pricing &amp; Payments (INR)
             </h2>
+            <p className="text-sm leading-relaxed mb-2">
+              All prices displayed on Kairo are denominated and charged in <strong>Indian National Rupees (INR / ₹)</strong> inclusive of all applicable charges.
+            </p>
             <p className="text-sm leading-relaxed">
-              The current rates are ₹3 per page for Black &amp; White and ₹5 per page for Colour printing. Pricing is calculated as: Total Pages × Number of Copies × Rate per Page. All payments are processed securely through PhonePe Payment Gateway. Kairo does not store any card or UPI credentials. Prices may be revised at any time, and the updated rate will be displayed before order confirmation.
+              The standard rates are <strong>₹3.00 INR per page</strong> for Black &amp; White and <strong>₹5.00 INR per page</strong> for Colour printing. Total pricing is calculated as: <code>Total Pages × Number of Copies × Rate per Page</code>. Payments are processed securely via PhonePe Payment Gateway. Kairo does not store or process debit/credit card or UPI PIN credentials.
             </p>
           </section>
 
@@ -152,15 +161,15 @@ export default function TermsPage() {
           <section>
             <h2 className="font-display text-lg font-bold text-[#111215] mb-3 flex items-center gap-3">
               <span className="font-mono-code text-xs text-[#1D4ED8]">08</span>
-              Contact
+              Contact &amp; Grievances
             </h2>
-            <p className="text-sm leading-relaxed">
-              For any questions regarding these Terms, please contact us at{' '}
-              <a href="mailto:div.pandey.css@gmail.com" className="text-[#1D4ED8] underline underline-offset-2">
-                div.pandey.css@gmail.com
-              </a>
-              .
-            </p>
+            <div className="text-sm leading-relaxed space-y-1.5 bg-[#F3EFE8] border border-[#E5DFD5] p-5 font-mono-code text-xs">
+              <p><strong>Entity Name:</strong> Kairo Print Services</p>
+              <p><strong>Contact Person:</strong> Divyansh</p>
+              <p><strong>Email:</strong> <a href="mailto:div.pandey.css@gmail.com" className="text-[#1D4ED8] underline">div.pandey.css@gmail.com</a></p>
+              <p><strong>Phone:</strong> +91 7303598548</p>
+              <p><strong>Operating &amp; Registered Address:</strong> Block B, B-1301, Mayur Vihar Phase 3, Gharoli Dairy, New Delhi, Delhi - 110096</p>
+            </div>
           </section>
 
         </div>

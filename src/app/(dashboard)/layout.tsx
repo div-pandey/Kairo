@@ -25,7 +25,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
           {children}
         </main>
         <footer className="border-t border-[#E5DFD5] px-5 py-3 flex flex-wrap items-center justify-center gap-4 font-mono-code text-[10px] text-[#98948C]">
-          <span>© {new Date().getFullYear()} Kairo · KCC Student Printing Service</span>
+          <span>© {new Date().getFullYear()} Kairo · Operated by Kairo Print Services</span>
           <span className="text-[#E5DFD5]">|</span>
           <Link href="/terms" className="hover:text-[#111215] transition-colors">Terms</Link>
           <span>·</span>
