@@ -70,6 +70,15 @@ export function AdminSidebar() {
           <LogOut className="h-3.5 w-3.5" />
           <span>Exit Console</span>
         </button>
+
+        {/* Legal Links */}
+        <div className="flex items-center justify-center gap-3 pt-2 border-t border-[#26282E] mt-1">
+          <Link href="/terms" className="font-mono-code text-[10px] text-[#4A4E58] hover:text-[#98948C] transition-colors">Terms</Link>
+          <span className="text-[#26282E] text-[10px]">·</span>
+          <Link href="/privacy" className="font-mono-code text-[10px] text-[#4A4E58] hover:text-[#98948C] transition-colors">Privacy</Link>
+          <span className="text-[#26282E] text-[10px]">·</span>
+          <Link href="/refund" className="font-mono-code text-[10px] text-[#4A4E58] hover:text-[#98948C] transition-colors">Refunds</Link>
+        </div>
       </div>
     </div>
   );

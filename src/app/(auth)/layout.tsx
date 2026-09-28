@@ -28,8 +28,15 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       </main>
 
       {/* Footer */}
-      <footer className="text-center font-mono-code text-[11px] text-[#98948C]">
-        Official KCC Student Printing Service · B&amp;W ₹3 / Colour ₹5
+      <footer className="font-mono-code text-[11px] text-[#98948C] flex flex-col items-center gap-2">
+        <p>Official KCC Student Printing Service · B&amp;W ₹3 / Colour ₹5</p>
+        <div className="flex items-center gap-4">
+          <Link href="/terms" className="hover:text-[#111215] transition-colors">Terms</Link>
+          <span>·</span>
+          <Link href="/privacy" className="hover:text-[#111215] transition-colors">Privacy</Link>
+          <span>·</span>
+          <Link href="/refund" className="hover:text-[#111215] transition-colors">Refund Policy</Link>
+        </div>
       </footer>
     </div>
   );
