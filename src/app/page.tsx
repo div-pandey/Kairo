@@ -485,7 +485,13 @@ export default function LandingPage() {
 
           <div className="flex flex-col sm:flex-row items-center justify-between text-xs font-mono-code text-[#98948C] gap-4">
             <p>© {new Date().getFullYear()} Kairo. Handcrafted for KCC students.</p>
-            <p>B&amp;W ₹3 · Colour ₹5 · No platform fee</p>
+            <div className="flex flex-wrap items-center gap-5">
+              <p>B&amp;W ₹3 · Colour ₹5 · No platform fee</p>
+              <span className="text-[#E5DFD5]">|</span>
+              <Link href="/terms" className="hover:text-[#111215] transition-colors">Terms</Link>
+              <Link href="/privacy" className="hover:text-[#111215] transition-colors">Privacy</Link>
+              <Link href="/refund" className="hover:text-[#111215] transition-colors">Refunds</Link>
+            </div>
           </div>
         </div>
       </footer>
