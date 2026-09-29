@@ -73,7 +73,7 @@ export interface UploadedFile {
   pageCountLoading?: boolean;
   pageCountError?: string;
   colourMode: ColourMode;
-  printSide: PrintSide;
+  printSide?: PrintSide;
   copies: number;
 }
 
