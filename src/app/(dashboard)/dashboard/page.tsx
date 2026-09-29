@@ -1,5 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import Link from 'next/link';
+import { Suspense } from 'react';
+import DashboardLoading from './loading';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { Order } from '@/types';
 import { formatCurrency, formatDate } from '@/lib/utils';
@@ -24,7 +26,15 @@ const NOTICES = [
   { type: 'info',  text: 'Lab records must be single-sided as per faculty rules.' },
 ];
 
-export default async function DashboardPage() {
+export default function DashboardPage() {
+  return (
+    <Suspense fallback={<DashboardLoading />}>
+      <DashboardContent />
+    </Suspense>
+  );
+}
+
+async function DashboardContent() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 

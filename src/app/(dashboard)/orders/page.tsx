@@ -1,11 +1,21 @@
 import { createClient } from '@/lib/supabase/server';
 import Link from 'next/link';
+import { Suspense } from 'react';
+import OrdersLoading from './loading';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { Order } from '@/types';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import { FileText, ArrowRight, Plus } from 'lucide-react';
 
-export default async function OrdersPage() {
+export default function OrdersPage() {
+  return (
+    <Suspense fallback={<OrdersLoading />}>
+      <OrdersContent />
+    </Suspense>
+  );
+}
+
+async function OrdersContent() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
