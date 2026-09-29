@@ -1,9 +1,10 @@
-﻿'use client';
+'use client';
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { CheckCircle2, XCircle, Loader2, ArrowRight, RefreshCw } from 'lucide-react';
+import { Skeleton } from '@/components/ui/Skeleton';
 
 type PaymentStatus = 'loading' | 'pending' | 'success' | 'failed' | 'error';
 
@@ -96,10 +97,27 @@ export default function PaymentStatusPage() {
           <span className="absolute bottom-2 right-2 text-[10px] text-[#B5ADA0] select-none">+</span>
 
           {data.status === 'loading' && (
-            <div className="text-center py-4 space-y-4 animate-fade-in">
-              <Loader2 className="h-10 w-10 text-[#1D4ED8] animate-spin mx-auto" />
-              <p className="text-sm font-bold text-[#111215]">Verifying payment&hellip;</p>
-              <p className="text-xs text-[#65625D]">Please wait while we confirm your transaction.</p>
+            <div className="py-2 space-y-6 animate-fade-in">
+              <div className="text-center space-y-3">
+                <Skeleton className="h-12 w-12 rounded-full mx-auto" />
+                <Skeleton className="h-5 w-48 mx-auto" />
+                <Skeleton className="h-3 w-64 mx-auto" />
+              </div>
+              <div className="bg-[#FBF9F5] border border-[#E5DFD5] p-4 space-y-2.5">
+                <div className="flex justify-between items-center">
+                  <Skeleton className="h-3 w-28" />
+                  <Skeleton className="h-3 w-36" />
+                </div>
+                <div className="flex justify-between items-center">
+                  <Skeleton className="h-3 w-20" />
+                  <Skeleton className="h-3 w-24" />
+                </div>
+                <div className="flex justify-between items-center">
+                  <Skeleton className="h-3 w-16" />
+                  <Skeleton className="h-4 w-16" />
+                </div>
+              </div>
+              <Skeleton className="h-10 w-full" />
             </div>
           )}
 

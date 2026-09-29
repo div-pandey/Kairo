@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Tag, CheckCircle2, AlertCircle, Loader2, ArrowRight, RefreshCw, Calculator, ShieldCheck } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
+import { Skeleton } from '@/components/ui/Skeleton';
 
 export default function AdminPricingPage() {
   const router = useRouter();
@@ -89,9 +90,34 @@ export default function AdminPricingPage() {
       </div>
 
       {loading ? (
-        <div className="bg-white border border-[#D8D1C3] p-12 text-center text-[#65625D]">
-          <Loader2 className="h-6 w-6 animate-spin mx-auto mb-2 text-[#111215]" />
-          <p className="text-xs">Loading campus rate configuration...</p>
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {[1, 2].map((i) => (
+              <div key={i} className="bg-white border border-[#D8D1C3] p-6 space-y-5">
+                <div className="flex items-center justify-between border-b border-[#E5DFD5] pb-3">
+                  <Skeleton className="h-4 w-36" />
+                  <Skeleton className="h-4 w-16" />
+                </div>
+                <div className="space-y-2">
+                  <Skeleton className="h-10 w-28" />
+                  <Skeleton className="h-3 w-48" />
+                </div>
+                <div className="space-y-2 pt-2">
+                  <Skeleton className="h-3 w-28" />
+                  <div className="flex gap-2">
+                    <Skeleton className="h-11 flex-1" />
+                    <Skeleton className="h-11 w-11 shrink-0" />
+                    <Skeleton className="h-11 w-11 shrink-0" />
+                  </div>
+                </div>
+                <Skeleton className="h-7 w-52" />
+              </div>
+            ))}
+          </div>
+          <div className="bg-white border border-[#D8D1C3] p-6 space-y-4">
+            <Skeleton className="h-4 w-44" />
+            <Skeleton className="h-12 w-full" />
+          </div>
         </div>
       ) : (
         <form onSubmit={handleSaveRates} className="space-y-6">

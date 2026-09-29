@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -11,6 +11,8 @@ const SECTION_SUBS: Record<string, string[]> = {
   A: ['A1','A2','A3','A4','A5','A6','A7','A8','A9','A10'],
   B: ['B1','B2','B3','B4','B5','B6','B7','B8','B9','B10','B11'],
 };
+
+const STORAGE_KEY = 'kairo_registration_draft_v1';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -38,6 +40,21 @@ export default function RegisterPage() {
     email: '',
     password: '',
   });
+
+  // Restore saved draft on mount so data is never lost on refresh or navigation
+  useEffect(() => {
+    try {
+      const saved = sessionStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        setForm((prev) => ({
+          ...prev,
+          ...parsed,
+          password: '',
+        }));
+      }
+    } catch {}
+  }, []);
 
   // Password strength 0-4
   function getPasswordStrength(p: string): number {
@@ -76,8 +93,18 @@ export default function RegisterPage() {
   const [mobileError, setMobileError] = useState('');
   const [rollError, setRollError] = useState('');
 
-  const update = (field: string, value: string) =>
-    setForm((prev) => ({ ...prev, [field]: value }));
+  const update = (field: string, value: string) => {
+    setForm((prev) => {
+      const next = { ...prev, [field]: value };
+      try {
+        if (typeof window !== 'undefined') {
+          const { password: _p, ...safeToStore } = next;
+          sessionStorage.setItem(STORAGE_KEY, JSON.stringify(safeToStore));
+        }
+      } catch {}
+      return next;
+    });
+  };
 
   function validateMobile(val: string): boolean {
     const digits = val.trim();
@@ -149,6 +176,12 @@ export default function RegisterPage() {
         setLoading(false);
         return;
       }
+
+      try {
+        if (typeof window !== 'undefined') {
+          sessionStorage.removeItem(STORAGE_KEY);
+        }
+      } catch {}
 
       router.push('/dashboard');
       router.refresh();
@@ -260,7 +293,15 @@ export default function RegisterPage() {
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form
+            onSubmit={handleSubmit}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && (e.target as HTMLElement).tagName !== 'TEXTAREA') {
+                e.preventDefault();
+              }
+            }}
+            className="space-y-5"
+          >
             {step === 1 && (
               <>
                 <div>
@@ -272,10 +313,13 @@ export default function RegisterPage() {
                   </label>
                   <input
                     id="register-fullname"
+                    name="fullName"
                     type="text"
                     required
+                    autoComplete="name"
                     value={form.fullName}
                     onChange={(e) => update('fullName', e.target.value)}
+                    onInput={(e) => update('fullName', (e.target as HTMLInputElement).value)}
                     placeholder="e.g. Rahul Sharma"
                     className="w-full bg-[#FBF9F5] border border-[#CFC7BB] focus:border-[#111215] focus:bg-white text-sm text-[#111215] px-3.5 py-2.5 rounded-none outline-none transition-colors font-mono-code placeholder:text-[#98948C]"
                   />
@@ -298,9 +342,11 @@ export default function RegisterPage() {
                     </span>
                     <input
                       id="register-mobile"
+                      name="mobileNumber"
                       type="tel"
                       inputMode="numeric"
                       required
+                      autoComplete="tel"
                       value={form.mobileNumber}
                       onChange={(e) => {
                         const val = e.target.value.replace(/\D/g, '').slice(0, 10);
@@ -308,6 +354,10 @@ export default function RegisterPage() {
                         if (mobileError && val.length === 10) {
                           setMobileError('');
                         }
+                      }}
+                      onInput={(e) => {
+                        const val = (e.target as HTMLInputElement).value.replace(/\D/g, '').slice(0, 10);
+                        update('mobileNumber', val);
                       }}
                       onBlur={() => validateMobile(form.mobileNumber)}
                       placeholder="9876543210"
@@ -347,8 +397,10 @@ export default function RegisterPage() {
                   </div>
                   <input
                     id="register-roll"
+                    name="kccId"
                     type="text"
                     required
+                    autoComplete="off"
                     value={form.kccId}
                     onChange={(e) => {
                       const val = e.target.value.trim();
@@ -356,6 +408,10 @@ export default function RegisterPage() {
                       if (rollError && val.length === 13 && /^\d{13}$/.test(val)) {
                         setRollError('');
                       }
+                    }}
+                    onInput={(e) => {
+                      const val = (e.target as HTMLInputElement).value.trim();
+                      update('kccId', val);
                     }}
                     onBlur={() => validateRoll(form.kccId)}
                     placeholder="e.g. 2504920100231"
@@ -377,10 +433,15 @@ export default function RegisterPage() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block font-mono-code text-xs font-semibold text-[#111215] uppercase tracking-wider mb-1.5">
+                    <label
+                      htmlFor="register-year"
+                      className="block font-mono-code text-xs font-semibold text-[#111215] uppercase tracking-wider mb-1.5"
+                    >
                       Year of Study <span className="text-[#DC2626]">*</span>
                     </label>
                     <select
+                      id="register-year"
+                      name="year"
                       required
                       value={form.year}
                       onChange={(e) => update('year', e.target.value)}
@@ -394,15 +455,29 @@ export default function RegisterPage() {
                   </div>
 
                   <div>
-                    <label className="block font-mono-code text-xs font-semibold text-[#111215] uppercase tracking-wider mb-1.5">
+                    <label
+                      htmlFor="register-section"
+                      className="block font-mono-code text-xs font-semibold text-[#111215] uppercase tracking-wider mb-1.5"
+                    >
                       Section <span className="text-[#DC2626]">*</span>
                     </label>
                     <select
+                      id="register-section"
+                      name="section"
                       required
                       value={form.section}
                       onChange={(e) => {
-                        update('section', e.target.value);
-                        update('subSection', '');
+                        const val = e.target.value;
+                        setForm((prev) => {
+                          const next = { ...prev, section: val, subSection: '' };
+                          try {
+                            if (typeof window !== 'undefined') {
+                              const { password: _p, ...safeToStore } = next;
+                              sessionStorage.setItem(STORAGE_KEY, JSON.stringify(safeToStore));
+                            }
+                          } catch {}
+                          return next;
+                        });
                       }}
                       className="w-full bg-[#FBF9F5] border border-[#CFC7BB] focus:border-[#111215] focus:bg-white text-sm text-[#111215] px-3 py-2.5 rounded-none outline-none transition-colors font-mono-code"
                     >
@@ -423,10 +498,15 @@ export default function RegisterPage() {
                   }}
                 >
                   <div className="pt-1">
-                    <label className="block font-mono-code text-xs font-semibold text-[#111215] uppercase tracking-wider mb-1.5">
+                    <label
+                      htmlFor="register-subsection"
+                      className="block font-mono-code text-xs font-semibold text-[#111215] uppercase tracking-wider mb-1.5"
+                    >
                       Sub-Section <span className="text-[#DC2626]">*</span>
                     </label>
                     <select
+                      id="register-subsection"
+                      name="subSection"
                       required={!!(form.section && SECTION_SUBS[form.section])}
                       value={form.subSection}
                       onChange={(e) => update('subSection', e.target.value)}
@@ -441,16 +521,21 @@ export default function RegisterPage() {
                 </div>
 
                 <div>
-                  <label className="block font-mono-code text-xs font-semibold text-[#111215] uppercase tracking-wider mb-1.5">
-                    Class / Programme <span className="text-[#DC2626]">*</span>
+                  <label
+                    htmlFor="register-programme"
+                    className="block font-mono-code text-xs font-semibold text-[#111215] uppercase tracking-wider mb-1.5"
+                  >
+                    Programme <span className="text-[#DC2626]">*</span>
                   </label>
                   <select
+                    id="register-programme"
+                    name="className"
                     required
                     value={form.className}
                     onChange={(e) => update('className', e.target.value)}
                     className="w-full bg-[#FBF9F5] border border-[#CFC7BB] focus:border-[#111215] focus:bg-white text-sm text-[#111215] px-3 py-2.5 rounded-none outline-none transition-colors font-mono-code"
                   >
-                    <option value="">Select your course / programme</option>
+                    <option value="">Select your programme</option>
                     <optgroup label="B.Tech Programmes (KCC ITM — AKTU)">
                       {KCC_PROGRAMMES.slice(0, 10).map((prog) => (
                         <option key={prog} value={prog}>{prog}</option>
@@ -470,12 +555,18 @@ export default function RegisterPage() {
                 </div>
 
                 <div>
-                  <label className="block font-mono-code text-xs font-semibold text-[#111215] uppercase tracking-wider mb-1.5">
+                  <label
+                    htmlFor="register-classroom"
+                    className="block font-mono-code text-xs font-semibold text-[#111215] uppercase tracking-wider mb-1.5"
+                  >
                     Classroom Number <span className="text-[#DC2626]">*</span>
                   </label>
                   <input
+                    id="register-classroom"
+                    name="classroomNumber"
                     type="text"
                     required
+                    autoComplete="off"
                     value={form.classroomNumber}
                     onChange={(e) => update('classroomNumber', e.target.value)}
                     placeholder="e.g. Room 302, Block B or ME-104"
@@ -503,8 +594,10 @@ export default function RegisterPage() {
                     </label>
                     <input
                       id="register-email"
+                      name="email"
                       type="email"
                       required
+                      autoComplete="email"
                       value={form.email}
                       onChange={(e) => {
                         update('email', e.target.value);
@@ -534,9 +627,11 @@ export default function RegisterPage() {
                     <div className="relative">
                       <input
                         id="register-password"
+                        name="password"
                         type={showPass ? 'text' : 'password'}
                         required
                         minLength={8}
+                        autoComplete="new-password"
                         value={form.password}
                         onChange={(e) => {
                           update('password', e.target.value);
@@ -595,8 +690,10 @@ export default function RegisterPage() {
                     <div className="relative">
                       <input
                         id="register-confirm-password"
+                        name="confirmPassword"
                         type={showConfirmPass ? 'text' : 'password'}
                         required
+                        autoComplete="new-password"
                         value={confirmPassword}
                         onChange={(e) => {
                           setConfirmPassword(e.target.value);
@@ -649,7 +746,7 @@ export default function RegisterPage() {
                     const isConfirmValid = validateConfirm(confirmPassword);
 
                     if (!form.fullName || !form.mobileNumber || !form.kccId || !form.year || !form.section || !form.subSection || !form.className || !form.classroomNumber) {
-                      setError('Please complete all required fields including mobile number, sub-section, and classroom number.');
+                      setError('Please complete all required fields including mobile number, programme, sub-section, and classroom number.');
                       return;
                     }
 
