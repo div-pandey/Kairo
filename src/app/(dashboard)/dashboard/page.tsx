@@ -15,8 +15,8 @@ export const metadata = { title: 'Dashboard — Kairo' };
 // How-to steps shown as a quick-start guide
 const HOW_IT_WORKS = [
   { step: '01', title: 'Upload Files', desc: 'PDF, DOCX, PPTX, or images. Up to 20 files per order (100MB each).' },
-  { step: '02', title: 'Choose Settings', desc: 'B&W or Colour, copies, single/double-sided.' },
-  { step: '03', title: 'Pay at Counter', desc: 'Collect & pay in person at the print centre.' },
+  { step: '02', title: 'Choose Settings', desc: 'B&W or Colour, copies, single/double-sided, plus custom desk notes.' },
+  { step: '03', title: 'Pay UPI & Collect', desc: 'Pay instantly via UPI and collect your printout from the campus desk.' },
 ];
 
 // Notice board items (static for now)

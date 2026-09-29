@@ -69,13 +69,21 @@ export default async function AdminDashboardPage() {
           </p>
         </div>
 
-        <Link
-          href="/admin/orders"
-          className="inline-flex items-center gap-1.5 text-xs text-[#1D4ED8] hover:underline"
-        >
-          <span>View entire queue ({allOrders?.length ?? 0} jobs)</span>
-          <ArrowRight className="h-3.5 w-3.5" />
-        </Link>
+        <div className="flex flex-wrap items-center gap-3">
+          <Link
+            href="/admin/ledger"
+            className="inline-flex items-center gap-1.5 text-xs bg-white border border-[#D8D1C3] hover:border-[#111215] text-[#111215] px-3 py-1.5 transition-colors font-bold"
+          >
+            <span>Daily Ledger &amp; Paper Audit</span>
+          </Link>
+          <Link
+            href="/admin/orders"
+            className="inline-flex items-center gap-1.5 text-xs text-[#1D4ED8] hover:underline"
+          >
+            <span>View entire queue ({allOrders?.length ?? 0} jobs)</span>
+            <ArrowRight className="h-3.5 w-3.5" />
+          </Link>
+        </div>
       </div>
 
       {/* Metrics Row (Physical Ledger Style, not rounded cards) */}

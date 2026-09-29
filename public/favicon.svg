@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <defs>
+    <pattern id="sl" x="0" y="0" width="512" height="4" patternUnits="userSpaceOnUse">
+      <rect width="512" height="1" fill="#FFFFFF" opacity="0.028"/>
+    </pattern>
+  </defs>
+
+  <!-- Background: deep charcoal, rounded square -->
+  <rect width="512" height="512" rx="92" fill="#111215"/>
+
+  <!-- Subtle horizontal scanline texture (print paper ruling) -->
+  <rect width="512" height="512" rx="92" fill="url(#sl)"/>
+
+  <!-- K — STEM (bold vertical bar) -->
+  <rect x="110" y="96" width="68" height="320" fill="#F5F0E8"/>
+
+  <!-- K — UPPER ARM (diagonal bar, joint to top-right) -->
+  <polygon points="178,216 404,96 404,150 178,264" fill="#F5F0E8"/>
+
+  <!-- K — LOWER ARM (diagonal bar, joint to bottom-right) -->
+  <polygon points="178,248 404,362 404,416 178,296" fill="#F5F0E8"/>
+
+  <!-- PRINT REGISTRATION DOT at junction — dark knock-out ring + cream inner dot -->
+  <!-- This is the key iconographic detail: the offset printing registration mark -->
+  <circle cx="210" cy="256" r="23" fill="#111215"/>
+  <circle cx="210" cy="256" r="9"  fill="#F5F0E8"/>
+</svg>

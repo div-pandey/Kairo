@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { AdminSidebar } from '@/components/admin/AdminSidebar';
+import { AdminAudioAlert } from '@/components/admin/AdminAudioAlert';
 import Link from 'next/link';
 
 async function checkAdmin() {
@@ -24,6 +25,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   return (
     <div className="flex flex-col lg:flex-row min-h-screen bg-[#FBF9F5]">
       <AdminSidebar />
+      <AdminAudioAlert />
       <div className="flex-1 min-w-0 flex flex-col pt-16 lg:pt-0">
         <main className="flex-1">
           {children}

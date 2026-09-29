@@ -4,12 +4,14 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
-import { LayoutDashboard, ClipboardList, LogOut, Menu, X } from 'lucide-react';
+import { LayoutDashboard, ClipboardList, Tag, LogOut, Menu, X, BookOpen } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const navItems = [
   { href: '/admin', label: 'Console Overview', icon: LayoutDashboard },
   { href: '/admin/orders', label: 'Print Queue', icon: ClipboardList },
+  { href: '/admin/ledger', label: 'Daily Ledger', icon: BookOpen },
+  { href: '/admin/pricing', label: 'Rate Configuration', icon: Tag },
 ];
 
 export function AdminSidebar() {

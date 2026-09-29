@@ -59,3 +59,49 @@ export function calculateItemTotal(
 ): number {
   return pageCount * copies * pricePerPage;
 }
+
+export function parsePageRange(
+  rangeStr: string,
+  maxPages?: number
+): { valid: boolean; pages: number[]; count: number; error?: string } {
+  const trimmed = rangeStr.trim();
+  if (!trimmed || trimmed.toLowerCase() === 'all') {
+    return { valid: true, pages: [], count: maxPages || 1 };
+  }
+
+  const parts = trimmed.split(',').map((p) => p.trim()).filter(Boolean);
+  const pageSet = new Set<number>();
+
+  for (const part of parts) {
+    if (part.includes('-')) {
+      const [startStr, endStr] = part.split('-').map((s) => s.trim());
+      const start = parseInt(startStr, 10);
+      const end = parseInt(endStr, 10);
+      if (isNaN(start) || isNaN(end) || start < 1 || end < start) {
+        return { valid: false, pages: [], count: 0, error: `Invalid range: "${part}"` };
+      }
+      if (maxPages && end > maxPages) {
+        return { valid: false, pages: [], count: 0, error: `Page ${end} exceeds document limit of ${maxPages} pages` };
+      }
+      for (let i = start; i <= end; i++) {
+        pageSet.add(i);
+      }
+    } else {
+      const single = parseInt(part, 10);
+      if (isNaN(single) || single < 1) {
+        return { valid: false, pages: [], count: 0, error: `Invalid page: "${part}"` };
+      }
+      if (maxPages && single > maxPages) {
+        return { valid: false, pages: [], count: 0, error: `Page ${single} exceeds document limit of ${maxPages} pages` };
+      }
+      pageSet.add(single);
+    }
+  }
+
+  const pages = Array.from(pageSet).sort((a, b) => a - b);
+  if (pages.length === 0) {
+    return { valid: false, pages: [], count: 0, error: 'Enter at least one page number' };
+  }
+
+  return { valid: true, pages, count: pages.length };
+}

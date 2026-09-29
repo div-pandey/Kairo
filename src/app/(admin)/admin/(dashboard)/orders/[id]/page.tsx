@@ -3,8 +3,9 @@ import { redirect, notFound } from 'next/navigation';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { Order } from '@/types';
 import { formatCurrency, formatDate, formatFileSize } from '@/lib/utils';
-import { ArrowLeft, FileText, Download, User } from 'lucide-react';
+import { ArrowLeft, FileText, Download, User, Printer } from 'lucide-react';
 import { AdminStatusChanger } from '@/components/admin/AdminStatusChanger';
+import { AdminPrintJobSlip } from '@/components/admin/AdminPrintJobSlip';
 import Link from 'next/link';
 
 interface Props {
@@ -27,13 +28,15 @@ export default async function AdminOrderDetailPage({ params }: Props) {
 
   return (
     <div className="px-4 py-6 sm:p-10 max-w-5xl mx-auto space-y-6 sm:space-y-8 animate-fade-in font-mono-code">
-      <div>
+      <div className="flex items-center justify-between">
         <Link
           href="/admin/orders"
           className="inline-flex items-center gap-1.5 text-xs text-[#65625D] hover:text-[#111215] transition-colors"
         >
           <ArrowLeft className="h-3.5 w-3.5" /> Back to print queue
         </Link>
+
+        <AdminPrintJobSlip order={order} profile={profile} />
       </div>
 
       {/* Header */}
@@ -61,6 +64,17 @@ export default async function AdminOrderDetailPage({ params }: Props) {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left: Files to print & download */}
         <div className="lg:col-span-2 space-y-6">
+          {order.notes && (
+            <div className="bg-amber-50 border border-amber-300 p-4 space-y-1">
+              <span className="font-bold text-[11px] uppercase tracking-wider text-amber-900 block">
+                ★ Student Special Instructions for Press:
+              </span>
+              <p className="text-xs text-amber-950 font-bold whitespace-pre-wrap">
+                &ldquo;{order.notes}&rdquo;
+              </p>
+            </div>
+          )}
+
           <div className="bg-white border border-[#D8D1C3]">
             <div className="px-5 py-3.5 border-b border-[#E5DFD5] bg-[#F5F1EA] flex justify-between items-center">
               <span className="font-bold text-xs uppercase tracking-wider text-[#111215]">
@@ -72,10 +86,10 @@ export default async function AdminOrderDetailPage({ params }: Props) {
             <div className="divide-y divide-[#E5DFD5]">
               {order.order_items?.map((item: any) => (
                 <div key={item.id} className="p-5 space-y-3">
-                  <div className="flex items-start justify-between gap-3">
+                  <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                     <div className="space-y-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <FileText className="h-4 w-4 text-[#111215]" />
+                        <FileText className="h-4 w-4 text-[#111215] shrink-0" />
                         <span className="font-bold text-xs text-[#111215] truncate">
                           {item.file_name}
                         </span>
@@ -85,8 +99,23 @@ export default async function AdminOrderDetailPage({ params }: Props) {
                       </p>
                     </div>
 
-                    <AdminFileDownload filePath={item.file_path} fileName={item.file_name} />
+                    <AdminFileActions filePath={item.file_path} fileName={item.file_name} />
                   </div>
+
+                  {/* Selective Page Range Notice if configured */}
+                  {item.page_range && item.page_range !== 'all' ? (
+                    <div className="flex items-center gap-2 bg-amber-50 border border-amber-300 p-2.5 text-xs text-amber-950">
+                      <span className="bg-amber-600 text-white text-[9px] font-bold px-1.5 py-0.5 uppercase tracking-wider">
+                        Selective Pages
+                      </span>
+                      <span>
+                        Print pages: <strong className="font-mono bg-white px-1.5 py-0.5 border border-amber-300 text-black font-extrabold">{item.page_range}</strong>
+                      </span>
+                      <span className="text-[10px] text-amber-800">
+                        ({item.page_count} pages billed)
+                      </span>
+                    </div>
+                  ) : null}
 
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 bg-[#FBF9F5] border border-[#E5DFD5] p-3 text-[11px] text-[#65625D]">
                     <div>Mode: <strong className="text-[#111215] uppercase">{item.colour_mode === 'bw' ? 'B&W' : 'Colour'}</strong></div>
@@ -156,7 +185,7 @@ export default async function AdminOrderDetailPage({ params }: Props) {
   );
 }
 
-async function AdminFileDownload({ filePath, fileName }: { filePath: string; fileName: string }) {
+async function AdminFileActions({ filePath, fileName }: { filePath: string; fileName: string }) {
   const supabase = await createClient();
   const { data } = await supabase.storage
     .from('print-files')
@@ -167,15 +196,30 @@ async function AdminFileDownload({ filePath, fileName }: { filePath: string; fil
   }
 
   return (
-    <a
-      href={data.signedUrl}
-      download={fileName}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="inline-flex items-center gap-1.5 text-xs bg-[#111215] hover:bg-[#1D4ED8] text-white px-3 py-1.5 transition-colors font-bold uppercase tracking-wider"
-    >
-      <Download className="h-3.5 w-3.5" />
-      <span>Download</span>
-    </a>
+    <div className="flex items-center gap-2 shrink-0">
+      <a
+        href={data.signedUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="inline-flex items-center gap-1.5 text-xs bg-[#1D4ED8] hover:bg-[#1e40af] text-white px-3 py-1.5 transition-colors font-bold uppercase tracking-wider"
+        title="Open PDF directly in browser to print (Ctrl+P) without saving to disk"
+      >
+        <Printer className="h-3.5 w-3.5" />
+        <span>Open &amp; Print</span>
+      </a>
+
+      <a
+        href={data.signedUrl}
+        download={fileName}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="inline-flex items-center gap-1.5 text-xs bg-white hover:bg-[#F5F1EA] text-[#111215] border border-[#D8D1C3] px-3 py-1.5 transition-colors font-bold uppercase tracking-wider"
+        title="Download file to computer"
+      >
+        <Download className="h-3.5 w-3.5" />
+        <span>Save</span>
+      </a>
+    </div>
   );
 }
+

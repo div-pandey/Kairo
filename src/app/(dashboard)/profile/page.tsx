@@ -7,6 +7,7 @@ import {
   FileText, Printer, Clock, ChevronRight,
   AlertTriangle, AlertCircle,
 } from 'lucide-react';
+import { ProfileEditModal } from '@/components/profile/ProfileEditModal';
 
 export const metadata = { title: 'Student Profile — Kairo' };
 
@@ -80,9 +81,12 @@ export default async function ProfilePage() {
             Member since {memberSince} &middot; {daysSinceJoin} days on Kairo
           </p>
         </div>
-        <div className="inline-flex items-center gap-2 font-mono-code text-[11px] font-bold uppercase tracking-wider px-3 py-1.5 self-start sm:self-auto border border-[#111215] bg-white text-[#111215] shadow-[2px_2px_0px_#111215]">
-          <span className="h-2 w-2 rounded-full bg-[#15803D]" />
-          <span>Verified Student</span>
+        <div className="flex flex-wrap items-center gap-3 self-start sm:self-auto">
+          <ProfileEditModal initialProfile={profile} />
+          <div className="inline-flex items-center gap-2 font-mono-code text-[11px] font-bold uppercase tracking-wider px-3 py-2 border border-[#111215] bg-white text-[#111215] shadow-[2px_2px_0px_#111215]">
+            <span className="h-2 w-2 rounded-full bg-[#15803D]" />
+            <span>Verified Student</span>
+          </div>
         </div>
       </div>
 

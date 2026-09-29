@@ -114,3 +114,51 @@ export async function PATCH(req: NextRequest, { params }: Props) {
     return NextResponse.json({ error: 'Failed to update order status' }, { status: 500 });
   }
 }
+
+export async function GET(req: NextRequest, { params }: Props) {
+  try {
+    const { id } = await params;
+    const cleanId = sanitizeIdentifier(id, 64);
+
+    const supabase = await createClient();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Verify student ownership or admin status
+    const { data: order, error: orderError } = await supabase
+      .from('orders')
+      .select('id, status, updated_at, total_amount, order_number, created_at')
+      .eq('id', cleanId)
+      .maybeSingle();
+
+    if (orderError || !order) {
+      return NextResponse.json({ error: 'Order not found' }, { status: 404 });
+    }
+
+    let queueAhead = 0;
+    if (['pending', 'accepted', 'printing'].includes(order.status)) {
+      const { count } = await supabase
+        .from('orders')
+        .select('*', { count: 'exact', head: true })
+        .in('status', ['pending', 'accepted', 'printing'])
+        .lt('created_at', order.created_at);
+      queueAhead = count ?? 0;
+    }
+
+    return NextResponse.json({
+      status: order.status,
+      updatedAt: order.updated_at,
+      orderNumber: order.order_number,
+      queueAhead,
+    });
+  } catch (err: any) {
+    console.error('Status check error:', err);
+    return NextResponse.json({ error: 'Failed to check order status' }, { status: 500 });
+  }
+}

@@ -100,7 +100,7 @@ export default function AdminLoginPage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="div.pandey.html@gmail.com"
+                placeholder="admin@kairo.com"
                 className="w-full bg-[#FBF9F5] border border-[#CFC7BB] focus:border-[#111215] focus:bg-white text-sm text-[#111215] px-4 py-3.5 outline-none transition-colors"
               />
             </div>

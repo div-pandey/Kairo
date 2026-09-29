@@ -54,6 +54,7 @@ export interface OrderItem {
   page_count_source: PageCountSource;
   colour_mode: ColourMode;
   print_side?: PrintSide;
+  page_range?: string;
   copies: number;
   price_per_page: number;
   item_total: number;
@@ -69,11 +70,14 @@ export interface UploadedFile {
   uploadProgress: number;
   storagePath?: string;
   pageCount?: number;
+  totalDocumentPages?: number;
   pageCountSource?: PageCountSource;
   pageCountLoading?: boolean;
   pageCountError?: string;
   colourMode: ColourMode;
   printSide?: PrintSide;
+  pageRangeMode?: 'all' | 'custom';
+  customPageRange?: string;
   copies: number;
 }
 

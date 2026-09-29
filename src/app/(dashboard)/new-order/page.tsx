@@ -9,17 +9,10 @@ import {
   CheckCircle2, Loader2, ArrowRight, ArrowLeft,
   FileSpreadsheet, Printer
 } from 'lucide-react';
-import { formatFileSize, generateLocalId, MAX_FILE_SIZE, formatCurrency, calculateItemTotal } from '@/lib/utils';
+import { formatFileSize, generateLocalId, MAX_FILE_SIZE, formatCurrency, calculateItemTotal, parsePageRange } from '@/lib/utils';
 import { MAX_FILES_PER_ORDER, MAX_FILE_SIZE_MB } from '@/lib/constants';
 import { useRouter } from 'next/navigation';
-
-function FileIcon({ type, name }: { type: string; name: string }) {
-  const ext = name.split('.').pop()?.toLowerCase();
-  if (type.startsWith('image/')) return <Image className="h-4 w-4 text-[#1D4ED8]" />;
-  if (ext === 'pdf') return <FileText className="h-4 w-4 text-[#B91C1C]" />;
-  if (ext === 'pptx' || ext === 'ppt') return <FileSpreadsheet className="h-4 w-4 text-[#D97706]" />;
-  return <FileText className="h-4 w-4 text-[#111215]" />;
-}
+import { FileThumbnail } from '@/components/files/FileThumbnail';
 
 export default function NewOrderPage() {
   const router = useRouter();
@@ -29,6 +22,7 @@ export default function NewOrderPage() {
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
   const [globalError, setGlobalError] = useState('');
+  const [notes, setNotes] = useState('');
 
   // ── Fetch live pricing ──
   useEffect(() => {
@@ -100,6 +94,9 @@ export default function NewOrderPage() {
             ? {
                 ...f,
                 pageCount: data.pageCount ?? undefined,
+                totalDocumentPages: data.pageCount ?? undefined,
+                pageRangeMode: 'all',
+                customPageRange: '',
                 pageCountSource: data.source ?? 'estimated',
                 pageCountLoading: false,
                 pageCountError: data.error ?? undefined,
@@ -180,7 +177,7 @@ export default function NewOrderPage() {
     return uploaded;
   }
 
-  // ── Submit Order ──
+  // ── Submit Order & Initiate Payment ──
   async function handleConfirmOrder() {
     if (files.some((f) => !f.printSide)) {
       setSubmitError('Please choose a print layout for all documents before dispatching.');
@@ -206,26 +203,55 @@ export default function NewOrderPage() {
         pageCountSource: f.pageCountSource ?? 'manual',
         colourMode: f.colourMode,
         printSide: f.printSide || 'separate_pages',
+        pageRange: f.pageRangeMode === 'custom' && f.customPageRange ? f.customPageRange : 'all',
         copies: f.copies,
         pricePerPage: f.colourMode === 'bw' ? pricing.bw : pricing.colour,
       })),
+      notes: notes.trim() || undefined,
     };
 
-    const res = await fetch('/api/orders', {
+    const orderRes = await fetch('/api/orders', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(orderData),
     });
 
-    const result = await res.json();
+    const orderResult = await orderRes.json();
 
-    if (!res.ok) {
-      setSubmitError(result.error ?? 'Order submission failed.');
+    if (!orderRes.ok) {
+      setSubmitError(orderResult.error ?? 'Order submission failed.');
       setSubmitting(false);
       return;
     }
 
-    router.push(`/orders/${result.orderId}?new=1`);
+    const orderId = orderResult.orderId;
+
+    // Initiate payment — redirects to PhonePe (UPI on mobile, QR on web)
+    try {
+      const payRes = await fetch('/api/payment/initiate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId }),
+      });
+
+      const payData = await payRes.json();
+
+      if (payData.redirectUrl) {
+        // PhonePe configured — redirect to payment page (UPI on mobile / QR on web)
+        window.location.href = payData.redirectUrl;
+        return;
+      }
+
+      // Payment gateway returned an error — surface it to the user
+      const errMsg = payData.error ?? 'Payment gateway unavailable.';
+      setSubmitError(`Order created (ID: ${orderId.slice(0, 8)}…), but payment could not be initiated: ${errMsg}. Please contact support or retry from your orders page.`);
+      setSubmitting(false);
+      return;
+    } catch {
+      setSubmitError('Network error while initiating payment. Your order was created — please retry payment from the orders page.');
+      setSubmitting(false);
+      return;
+    }
   }
 
   return (
@@ -321,7 +347,7 @@ export default function NewOrderPage() {
                 {files.map((f) => (
                   <div key={f.id} className="p-3.5 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
                     <div className="flex items-center gap-3 min-w-0">
-                      <FileIcon type={f.type} name={f.name} />
+                      <FileThumbnail file={f.file} type={f.type} name={f.name} />
                       <div className="min-w-0">
                         <p className="font-mono-code text-xs font-bold text-[#111215] truncate">
                           {f.name}
@@ -386,7 +412,7 @@ export default function NewOrderPage() {
 
       {/* ── STEP 2: CONFIGURE ── */}
       {step === 'configure' && (
-        <div className="space-y-6">
+        <div className="space-y-6 pb-24 sm:pb-0">
           <div className="space-y-4">
             {files.map((f) => {
               const pricePerPage = f.colourMode === 'bw' ? pricing.bw : pricing.colour;
@@ -396,8 +422,8 @@ export default function NewOrderPage() {
                 <div key={f.id} className="bg-white border border-[#D8D1C3] p-5 sm:p-6 space-y-4">
                   {/* File title row */}
                   <div className="flex items-start justify-between gap-4 border-b border-[#E5DFD5] pb-3">
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <FileIcon type={f.type} name={f.name} />
+                    <div className="flex items-center gap-3 min-w-0">
+                      <FileThumbnail file={f.file} type={f.type} name={f.name} />
                       <span className="font-mono-code text-xs font-bold text-[#111215] truncate">
                         {f.name}
                       </span>
@@ -509,20 +535,128 @@ export default function NewOrderPage() {
                       </div>
                     </div>
                   </div>
+
+                  {/* Page Range Selection (All vs Custom Range) */}
+                  <div className="pt-3 border-t border-[#F0EBE3] space-y-2 font-mono-code">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[11px] text-[#65625D] uppercase font-bold">
+                          Pages:
+                        </span>
+                        <div className="inline-flex border border-[#CFC7BB] text-[11px]">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              updateFile(f.id, {
+                                pageRangeMode: 'all',
+                                pageCount: f.totalDocumentPages || f.pageCount,
+                                pageCountError: undefined,
+                              });
+                            }}
+                            className={`px-2.5 py-1 cursor-pointer transition-colors ${
+                              f.pageRangeMode !== 'custom'
+                                ? 'bg-[#111215] text-white font-bold'
+                                : 'bg-[#FBF9F5] text-[#65625D] hover:text-[#111215]'
+                            }`}
+                          >
+                            All ({f.totalDocumentPages ?? f.pageCount ?? 1} pgs)
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              updateFile(f.id, {
+                                pageRangeMode: 'custom',
+                              });
+                            }}
+                            className={`px-2.5 py-1 cursor-pointer border-l border-[#CFC7BB] transition-colors ${
+                              f.pageRangeMode === 'custom'
+                                ? 'bg-[#1D4ED8] text-white font-bold'
+                                : 'bg-[#FBF9F5] text-[#65625D] hover:text-[#111215]'
+                            }`}
+                          >
+                            Custom Range
+                          </button>
+                        </div>
+                      </div>
+
+                      <span className="text-xs text-[#111215]">
+                        Printing: <strong>{f.pageCount ?? 1} pages</strong>
+                      </span>
+                    </div>
+
+                    {f.pageRangeMode === 'custom' && (
+                      <div className="p-3 bg-[#FBF9F5] border border-[#CFC7BB] space-y-1.5">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-[11px]">
+                          <label htmlFor={`range-input-${f.id}`} className="font-semibold text-[#111215]">
+                            Specify Pages to Print:
+                          </label>
+                          <span className="text-[10px] text-[#65625D]">
+                            Format: 1-5, 8, 12-15 (Document max: {f.totalDocumentPages || 'any'})
+                          </span>
+                        </div>
+                        <input
+                          id={`range-input-${f.id}`}
+                          type="text"
+                          value={f.customPageRange || ''}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            const res = parsePageRange(val, f.totalDocumentPages);
+                            updateFile(f.id, {
+                              customPageRange: val,
+                              pageCount: res.valid ? res.count : (f.totalDocumentPages || 1),
+                              pageCountError: res.valid ? undefined : res.error,
+                            });
+                          }}
+                          placeholder="e.g. 1-5, 8, 12-15"
+                          className="w-full bg-white border border-[#CFC7BB] focus:border-[#111215] text-xs px-3 py-2 outline-none"
+                        />
+                        {f.pageCountError && (
+                          <p className="text-[11px] text-[#B91C1C]">
+                            * {f.pageCountError}
+                          </p>
+                        )}
+                        {!f.pageCountError && f.customPageRange && (
+                          <p className="text-[10px] text-[#15803D]">
+                            ✓ Printing {f.pageCount} specific page{f.pageCount === 1 ? '' : 's'}
+                          </p>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
               );
             })}
           </div>
 
-          {/* Running Order Total Bar */}
-          <div className="border border-[#111215] bg-[#111215] text-[#FBF9F5] p-5 flex items-center justify-between font-mono-code">
-            <div>
-              <p className="text-[11px] text-[#98948C] uppercase tracking-wider">
-                Total Requisition Amount
-              </p>
-              <p className="text-2xl font-black mt-0.5">{formatCurrency(grandTotal)}</p>
+          {/* Special Instructions / Notes for Print Desk */}
+          <div className="bg-white border border-[#D8D1C3] p-4 sm:p-5 space-y-2">
+            <div className="flex items-center justify-between">
+              <label htmlFor="order-notes" className="font-mono-code text-xs font-bold text-[#111215] uppercase tracking-wider">
+                Special Instructions for Desk <span className="font-normal text-[#65625D] text-[11px]">(Optional)</span>
+              </label>
+              <span className="font-mono-code text-[10px] text-[#98948C]">
+                {notes.length}/500
+              </span>
             </div>
-            <p className="text-xs text-[#98948C]">
+            <textarea
+              id="order-notes"
+              value={notes}
+              onChange={(e) => setNotes(e.target.value.slice(0, 500))}
+              placeholder="e.g., Please staple top-left corner, spiral binding, only black & white cover page, etc."
+              rows={2}
+              className="w-full bg-[#FBF9F5] border border-[#CFC7BB] focus:border-[#111215] focus:bg-white text-xs font-mono-code text-[#111215] p-3 outline-none transition-colors resize-none placeholder:text-[#98948C]"
+            />
+          </div>
+
+          {/* Running Order Total Bar */}
+          <div className="bg-white border border-[#D8D1C3] p-4 sm:p-5 flex items-center justify-between font-mono-code">
+            <div>
+              <p className="text-[11px] text-[#65625D] uppercase tracking-wider font-semibold">
+                Estimated Total
+              </p>
+              <p className="text-2xl font-black text-[#111215] mt-0.5">{formatCurrency(grandTotal)}</p>
+            </div>
+            <p className="text-xs text-[#65625D]">
               {files.length} {files.length === 1 ? 'file' : 'files'}
             </p>
           </div>
@@ -558,181 +692,172 @@ export default function NewOrderPage() {
               </button>
             </div>
           </div>
+
+          {/* Mobile Sticky Summary Bar */}
+          <div className="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#111215] text-[#FBF9F5] border-t border-[#26282E] px-4 py-3 shadow-[0_-8px_24px_rgba(0,0,0,0.35)] flex items-center justify-between font-mono-code">
+            <div className="space-y-0.5 min-w-0 pr-2">
+              <div className="flex items-baseline gap-2">
+                <span className="font-display font-black text-lg text-white">
+                  {formatCurrency(grandTotal)}
+                </span>
+                <span className="text-[11px] text-[#98948C]">
+                  · {files.length} {files.length === 1 ? 'file' : 'files'}
+                </span>
+              </div>
+              <p className="text-[10px] text-[#98948C] truncate">
+                {files.reduce((acc, f) => acc + (f.pageCount || 1) * f.copies, 0)} pages total
+              </p>
+            </div>
+
+            <button
+              type="button"
+              disabled={hasMissingLayout || files.some((f) => f.pageCountError)}
+              onClick={() => {
+                if (hasMissingLayout) {
+                  setSubmitError('Please choose a print layout for all documents.');
+                  return;
+                }
+                setStep('confirm');
+              }}
+              className="inline-flex items-center gap-1.5 bg-[#1D4ED8] hover:bg-[#1e40af] disabled:opacity-50 text-white text-xs font-bold uppercase tracking-wider px-4 py-2.5 transition-colors cursor-pointer shrink-0 shadow-sm"
+            >
+              <span>Review Requisition</span>
+              <ArrowRight className="h-3.5 w-3.5" />
+            </button>
+          </div>
         </div>
       )}
 
-      {/* ── STEP 3: REVIEW & CONFIRM (CLEAN & PREMIUM) ── */}
+      {/* ── STEP 3: REVIEW & CONFIRM (MINIMAL & CLEAN) ── */}
       {step === 'confirm' && (
-        <div className="space-y-6 animate-fade-in">
-          <div className="bg-white border border-[#E5DFD5] p-6 sm:p-8 shadow-xs space-y-6">
-            
-            {/* Header row */}
-            <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-2 border-b border-[#E5DFD5] pb-5">
-              <div>
-                <span className="font-mono-code text-[11px] font-semibold text-[#1D4ED8] uppercase tracking-wider block mb-1">
-                  [ STEP 03 · FINAL REQUISITION REVIEW ]
-                </span>
-                <h2 className="font-display font-black text-2xl sm:text-3xl text-[#111215] tracking-tight">
-                  Verify Print Order
-                </h2>
-                <p className="text-xs text-[#65625D] mt-1 font-mono-code">
-                  Review your job specifications and billing before dispatching to the campus print desk.
-                </p>
-              </div>
-
-              <div className="sm:text-right shrink-0">
-                <span className="font-mono-code text-[10px] text-[#98948C] uppercase tracking-wider block">
-                  Status
-                </span>
-                <span className="inline-flex items-center gap-1.5 font-mono-code text-xs font-bold text-[#15803D]">
-                  <span className="h-2 w-2 rounded-full bg-[#15803D] animate-pulse" />
-                  Ready to Dispatch
-                </span>
-              </div>
-            </div>
-
-            {/* Clean Advisory Notice */}
-            <div className="p-4 bg-[#F8F6F0] border border-[#E5DFD5] flex items-start gap-3">
-              <Printer className="h-4 w-4 text-[#1D4ED8] shrink-0 mt-0.5" />
-              <div className="text-xs font-mono-code text-[#65625D] leading-relaxed">
-                <strong className="text-[#111215] font-semibold">Immediate Press Routing: </strong>
-                Once confirmed, documents are queued directly into the production printer station. Specifications cannot be adjusted after submission.
-              </div>
-            </div>
-
-            {/* Requisition Items Table */}
-            <div className="space-y-3">
-              <div className="flex justify-between items-center font-mono-code text-[11px] text-[#65625D] uppercase tracking-wider pb-2 border-b border-[#E5DFD5]">
-                <span>Attached Documents ({orderItems.length})</span>
-                <span>Subtotal</span>
-              </div>
-
-              <div className="divide-y divide-[#E5DFD5]">
-                {orderItems.map(({ file: f, pageCount, pricePerPage, itemTotal }) => (
-                  <div
-                    key={f.id}
-                    className="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
-                  >
-                    <div className="space-y-1.5 min-w-0">
-                      <div className="flex items-center gap-2.5 min-w-0">
-                        <FileIcon type={f.type} name={f.name} />
-                        <span className="font-mono-code font-bold text-xs sm:text-sm text-[#111215] truncate">
-                          {f.name}
-                        </span>
-                      </div>
-
-                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 font-mono-code text-xs text-[#65625D]">
-                        <span className={`inline-flex items-center px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider border ${
-                          f.colourMode === 'colour'
-                            ? 'bg-blue-50 text-[#1D4ED8] border-blue-200'
-                            : 'bg-neutral-100 text-neutral-800 border-neutral-200'
-                        }`}>
-                          {f.colourMode === 'colour' ? 'Colour' : 'B&W'}
-                        </span>
-
-                        <span className="inline-flex items-center px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-neutral-50 text-neutral-700 border border-neutral-200">
-                          {f.printSide === 'both_sides' ? '2-Sided (Duplex)' : '1-Sided (Separate)'}
-                        </span>
-
-                        <span>
-                          {pageCount} pgs × {f.copies} {f.copies === 1 ? 'copy' : 'copies'}
-                        </span>
-
-                        <span className="text-[#98948C]">·</span>
-
-                        <span>
-                          ₹{pricePerPage}/pg
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="sm:text-right shrink-0 font-mono-code">
-                      <span className="font-bold text-sm sm:text-base text-[#111215]">
-                        {formatCurrency(itemTotal)}
-                      </span>
-                    </div>
+        <div className="space-y-4 sm:space-y-5 animate-fade-in">
+          {/* Requisition Card */}
+          <div className="bg-white border border-[#D8D1C3] divide-y divide-[#E5DFD5]">
+            {/* Attached Items */}
+            {orderItems.map(({ file: f, pageCount, pricePerPage, itemTotal }) => (
+              <div
+                key={f.id}
+                className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4"
+              >
+                <div className="space-y-1.5 min-w-0">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <FileThumbnail file={f.file} type={f.type} name={f.name} />
+                    <span className="font-mono-code font-bold text-xs sm:text-sm text-[#111215] truncate">
+                      {f.name}
+                    </span>
                   </div>
-                ))}
-              </div>
-            </div>
 
-            {/* Details Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-              <div className="p-4 bg-[#FBF9F5] border border-[#E5DFD5] space-y-0.5">
-                <span className="font-mono-code text-[10px] text-[#98948C] uppercase tracking-wider block">
-                  Pickup Counter
-                </span>
-                <span className="font-mono-code font-bold text-xs text-[#111215] block">
-                  KCC Campus Print Desk · Ground Floor
-                </span>
-              </div>
+                  <div className="flex flex-wrap items-center gap-x-2 gap-y-1 font-mono-code text-xs text-[#65625D]">
+                    <span className={`px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
+                      f.colourMode === 'colour'
+                        ? 'bg-[#1D4ED8] text-white'
+                        : 'bg-[#111215] text-[#FBF9F5]'
+                    }`}>
+                      {f.colourMode === 'colour' ? 'Colour' : 'B&W'}
+                    </span>
 
-              <div className="p-4 bg-[#FBF9F5] border border-[#E5DFD5] space-y-0.5">
-                <span className="font-mono-code text-[10px] text-[#98948C] uppercase tracking-wider block">
-                  Payment Instructions
-                </span>
-                <span className="font-mono-code font-bold text-xs text-[#111215] block">
-                  UPI QR Code or Cash at Desk
-                </span>
-              </div>
-            </div>
+                    <span className="px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-[#F3EFE8] text-[#111215] border border-[#CFC7BB]">
+                      {f.printSide === 'both_sides' ? '2-Sided' : '1-Sided'}
+                    </span>
 
-            {/* Total Banner */}
-            <div className="border border-[#111215] bg-[#111215] text-[#FBF9F5] p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 font-mono-code">
+                    {f.pageRangeMode === 'custom' && f.customPageRange && (
+                      <span className="px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-blue-50 text-[#1D4ED8] border border-blue-200">
+                        Pages: {f.customPageRange}
+                      </span>
+                    )}
+
+                    <span>
+                      {pageCount} {pageCount === 1 ? 'pg' : 'pgs'} × {f.copies} {f.copies === 1 ? 'copy' : 'copies'}
+                    </span>
+
+                    <span className="text-[#98948C]">·</span>
+
+                    <span>
+                      ₹{pricePerPage}/pg
+                    </span>
+                  </div>
+                </div>
+
+                <div className="sm:text-right shrink-0 font-mono-code">
+                  <span className="font-bold text-base sm:text-lg text-[#111215]">
+                    {formatCurrency(itemTotal)}
+                  </span>
+                </div>
+              </div>
+            ))}
+
+            {/* Total Row */}
+            <div className="p-4 sm:p-5 bg-[#FBF9F5] flex items-center justify-between font-mono-code">
               <div>
-                <span className="text-[11px] text-[#D5CDBC] uppercase tracking-wider block">
-                  Total Requisition Amount
+                <span className="text-xs font-bold text-[#111215] uppercase tracking-wider block">
+                  Total Amount
                 </span>
-                <p className="text-xs text-[#98948C] mt-0.5">
+                <span className="text-[11px] text-[#65625D]">
                   {totalPagesCount} total page{totalPagesCount === 1 ? '' : 's'} across {orderItems.length} {orderItems.length === 1 ? 'document' : 'documents'}
-                </p>
+                </span>
               </div>
 
-              <div className="text-left sm:text-right">
-                <span className="font-display font-black text-2xl sm:text-3xl text-white tracking-tight">
+              <div className="text-right">
+                <span className="font-display font-black text-2xl sm:text-3xl text-[#111215] tracking-tight">
                   {formatCurrency(grandTotal)}
                 </span>
               </div>
             </div>
+          </div>
 
-            {submitError && (
-              <div className="p-3.5 bg-red-50 border border-red-200 text-[#B91C1C] text-xs font-mono-code flex items-center gap-2">
-                <AlertCircle className="h-4 w-4 shrink-0" />
-                <span>{submitError}</span>
-              </div>
-            )}
-
-            {/* Navigation Actions */}
-            <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-3">
-              <button
-                type="button"
-                onClick={() => setStep('configure')}
-                disabled={submitting}
-                className="inline-flex items-center justify-center gap-2 border border-[#CFC7BB] hover:border-[#111215] bg-white hover:bg-[#F3EFE8] text-[#111215] py-3.5 px-6 font-mono-code text-xs uppercase tracking-wider font-bold transition-colors cursor-pointer"
-              >
-                <ArrowLeft className="h-3.5 w-3.5" />
-                <span>Back to Settings</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={handleConfirmOrder}
-                disabled={submitting}
-                className="inline-flex items-center justify-center gap-2 bg-[#111215] hover:bg-[#1D4ED8] disabled:opacity-50 text-[#FBF9F5] py-3.5 px-8 font-mono-code text-xs uppercase tracking-wider font-bold transition-colors shadow-sm cursor-pointer"
-              >
-                {submitting ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    <span>Submitting to Press...</span>
-                  </>
-                ) : (
-                  <>
-                    <span>Confirm &amp; Dispatch Print</span>
-                    <ArrowRight className="h-4 w-4" />
-                  </>
-                )}
-              </button>
+          {/* Special Instructions Review */}
+          {notes && (
+            <div className="bg-white border border-[#D8D1C3] p-4 font-mono-code text-xs space-y-1">
+              <span className="text-[10px] font-bold text-[#65625D] uppercase tracking-wider block">
+                Special Instructions for Desk:
+              </span>
+              <p className="text-[#111215] whitespace-pre-wrap">&ldquo;{notes}&rdquo;</p>
             </div>
+          )}
+
+          {/* Minimal Pickup & Payment note */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-4 px-1 font-mono-code text-xs text-[#65625D]">
+            <span>Pickup: <strong className="text-[#111215] font-semibold">KCC Campus Desk (Ground Floor)</strong></span>
+            <span>Payment: <strong className="text-[#111215] font-semibold">UPI Only</strong></span>
+          </div>
+
+          {submitError && (
+            <div className="p-3.5 bg-red-50 border border-red-200 text-[#B91C1C] text-xs font-mono-code flex items-center gap-2">
+              <AlertCircle className="h-4 w-4 shrink-0" />
+              <span>{submitError}</span>
+            </div>
+          )}
+
+          {/* Navigation Actions */}
+          <div className="flex flex-col-reverse sm:flex-row justify-between items-stretch sm:items-center gap-3 pt-2">
+            <button
+              type="button"
+              onClick={() => setStep('configure')}
+              disabled={submitting}
+              className="inline-flex items-center justify-center gap-1.5 font-mono-code text-xs text-[#65625D] hover:text-[#111215] py-2.5 cursor-pointer transition-colors"
+            >
+              <ArrowLeft className="h-3.5 w-3.5" />
+              <span>Back to Settings</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleConfirmOrder}
+              disabled={submitting}
+              className="inline-flex items-center justify-center gap-2 bg-[#111215] hover:bg-[#15803D] disabled:opacity-50 text-[#FBF9F5] py-3.5 px-8 font-mono-code text-xs uppercase tracking-wider font-bold transition-colors shadow-sm cursor-pointer"
+            >
+              {submitting ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span>Processing...</span>
+                </>
+              ) : (
+                <>
+                  <span>Pay {formatCurrency(grandTotal)}</span>
+                  <ArrowRight className="h-4 w-4" />
+                </>
+              )}
+            </button>
           </div>
         </div>
       )}
