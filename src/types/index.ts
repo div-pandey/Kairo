@@ -27,12 +27,15 @@ export interface PricingConfig {
   updated_at: string;
 }
 
+export type PaymentStatus = 'unpaid' | 'paid' | 'failed' | 'refunded';
+
 export interface Order {
   id: string;
   order_number: string;
   student_id: string;
   status: OrderStatus;
   total_amount: number;
+  payment_status: PaymentStatus;
   notes?: string;
   created_at: string;
   updated_at: string;
