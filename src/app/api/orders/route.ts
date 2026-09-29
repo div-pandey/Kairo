@@ -16,6 +16,7 @@ interface OrderItemInput {
   pageCount?: number;
   pageCountSource?: 'auto' | 'manual' | 'estimated';
   colourMode: 'bw' | 'colour';
+  printSide?: 'separate_pages' | 'both_sides';
   copies: number;
 }
 
@@ -88,6 +89,8 @@ export async function POST(req: NextRequest) {
         ? rawFilePath
         : `${user.id}/${safeFileName}`;
 
+      const printSide = item.printSide === 'both_sides' ? 'both_sides' : 'separate_pages';
+
       sanitizedItems.push({
         file_name: safeFileName,
         file_path: safeFilePath,
@@ -96,6 +99,7 @@ export async function POST(req: NextRequest) {
         page_count: pageCount,
         page_count_source: item.pageCountSource === 'auto' ? 'auto' : 'manual',
         colour_mode: isColour ? ('colour' as const) : ('bw' as const),
+        print_side: printSide,
         copies: copies,
         price_per_page: pricePerPage,
         item_total: itemTotal,
@@ -135,9 +139,18 @@ export async function POST(req: NextRequest) {
       order_id: order.id,
     }));
 
-    const { error: itemsError } = await adminClient
+    let { error: itemsError } = await adminClient
       .from('order_items')
       .insert(itemsToInsert);
+
+    // Graceful fallback if print_side column hasn't been added via migration yet
+    if (itemsError && itemsError.message?.toLowerCase().includes('print_side')) {
+      const fallbackItems = itemsToInsert.map(({ print_side, ...rest }) => rest);
+      const retryResult = await adminClient
+        .from('order_items')
+        .insert(fallbackItems);
+      itemsError = retryResult.error;
+    }
 
     if (itemsError) {
       console.error('Failed to insert order items:', itemsError);

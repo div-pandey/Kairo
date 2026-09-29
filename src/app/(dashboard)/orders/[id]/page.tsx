@@ -150,6 +150,8 @@ export default async function OrderDetailPage({ params, searchParams }: Props) {
                     <span>·</span>
                     <span>Mode: <strong className="text-[#111215] uppercase">{item.colour_mode === 'bw' ? 'B&W' : 'Colour'}</strong></span>
                     <span>·</span>
+                    <span>Sides: <strong className="text-[#111215]">{item.print_side === 'both_sides' ? 'Both sides (Duplex)' : 'Separate pages'}</strong></span>
+                    <span>·</span>
                     <span>Copies: <strong className="text-[#111215]">{item.copies}</strong></span>
                     <span>·</span>
                     <span>Unit: <strong className="text-[#111215]">{formatCurrency(item.price_per_page)}/pg</strong></span>

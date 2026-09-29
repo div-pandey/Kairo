@@ -2,6 +2,7 @@
 
 export type OrderStatus = 'pending' | 'accepted' | 'printing' | 'ready' | 'completed' | 'cancelled';
 export type ColourMode = 'bw' | 'colour';
+export type PrintSide = 'separate_pages' | 'both_sides';
 export type PageCountSource = 'auto' | 'manual' | 'estimated';
 
 export interface Profile {
@@ -49,6 +50,7 @@ export interface OrderItem {
   page_count?: number;
   page_count_source: PageCountSource;
   colour_mode: ColourMode;
+  print_side?: PrintSide;
   copies: number;
   price_per_page: number;
   item_total: number;
@@ -68,6 +70,7 @@ export interface UploadedFile {
   pageCountLoading?: boolean;
   pageCountError?: string;
   colourMode: ColourMode;
+  printSide: PrintSide;
   copies: number;
 }
 

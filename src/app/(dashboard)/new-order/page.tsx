@@ -28,6 +28,9 @@ export default function NewOrderPage() {
   const [step, setStep] = useState<'upload' | 'configure' | 'confirm'>('upload');
   const [pricing, setPricing] = useState({ bw: 3, colour: 5 });
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [layoutModalOpen, setLayoutModalOpen] = useState(false);
+  const [selectedLayout, setSelectedLayout] = useState<'separate_pages' | 'both_sides'>('separate_pages');
+  const [pendingFileIds, setPendingFileIds] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
   const [globalError, setGlobalError] = useState('');
@@ -54,6 +57,8 @@ export default function NewOrderPage() {
         setGlobalError(errors.join('\n'));
       }
 
+      if (accepted.length === 0) return;
+
       const remaining = MAX_FILES_PER_ORDER - files.length;
       if (accepted.length > remaining) {
         setGlobalError(`You can only add ${remaining} more file${remaining === 1 ? '' : 's'} (max ${MAX_FILES_PER_ORDER} per order).`);
@@ -69,10 +74,14 @@ export default function NewOrderPage() {
         uploadProgress: 0,
         pageCountLoading: true,
         colourMode: 'bw',
+        printSide: 'separate_pages',
         copies: 1,
       }));
 
       setFiles((prev) => [...prev, ...newFiles]);
+      setPendingFileIds(newFiles.map((f) => f.id));
+      setSelectedLayout('separate_pages');
+      setLayoutModalOpen(true);
 
       for (const uploadedFile of newFiles) {
         getPageCount(uploadedFile);
@@ -137,6 +146,16 @@ export default function NewOrderPage() {
   const updateFile = (id: string, updates: Partial<UploadedFile>) =>
     setFiles((prev) => prev.map((f) => (f.id === id ? { ...f, ...updates } : f)));
 
+  const handleApplyLayout = (layout?: 'separate_pages' | 'both_sides') => {
+    const chosen = layout ?? selectedLayout;
+    setFiles((prev) =>
+      prev.map((f) =>
+        pendingFileIds.includes(f.id) ? { ...f, printSide: chosen } : f
+      )
+    );
+    setLayoutModalOpen(false);
+  };
+
   // ── Calculation ──
   const orderItems = files.map((f) => ({
     file: f,
@@ -197,6 +216,7 @@ export default function NewOrderPage() {
         pageCount: f.pageCount,
         pageCountSource: f.pageCountSource ?? 'manual',
         colourMode: f.colourMode,
+        printSide: f.printSide || 'separate_pages',
         copies: f.copies,
         pricePerPage: f.colourMode === 'bw' ? pricing.bw : pricing.colour,
       })),
@@ -314,7 +334,24 @@ export default function NewOrderPage() {
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-4 shrink-0 font-mono-code text-xs border-t sm:border-t-0 pt-2 sm:pt-0 border-[#F0EBE3]">
+                    <div className="flex items-center justify-between sm:justify-end gap-2.5 sm:gap-3.5 shrink-0 font-mono-code text-xs border-t sm:border-t-0 pt-2 sm:pt-0 border-[#F0EBE3]">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setPendingFileIds([f.id]);
+                          setSelectedLayout(f.printSide || 'separate_pages');
+                          setLayoutModalOpen(true);
+                        }}
+                        className={`px-2 py-1 border text-[10px] uppercase font-bold tracking-wider cursor-pointer transition-colors ${
+                          f.printSide === 'both_sides'
+                            ? 'border-[#1D4ED8] bg-blue-50 text-[#1D4ED8] hover:bg-blue-100'
+                            : 'border-[#CFC7BB] bg-[#FBF9F5] text-[#65625D] hover:border-[#111215] hover:text-[#111215]'
+                        }`}
+                        title="Click to change print layout"
+                      >
+                        {f.printSide === 'both_sides' ? '2-Sided (Duplex)' : 'Separate Pages'}
+                      </button>
+
                       {f.pageCountLoading ? (
                         <span className="inline-flex items-center gap-1.5 text-[#65625D]">
                           <Loader2 className="h-3.5 w-3.5 animate-spin" /> Counting...
@@ -390,7 +427,7 @@ export default function NewOrderPage() {
                   </div>
 
                   {/* Settings Grid */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 items-center">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-5 items-start">
                     {/* Colour Mode Switcher */}
                     <div>
                       <p className="font-mono-code text-[11px] text-[#65625D] uppercase mb-2">
@@ -400,10 +437,10 @@ export default function NewOrderPage() {
                         <button
                           type="button"
                           onClick={() => updateFile(f.id, { colourMode: 'bw' })}
-                          className={`py-2 px-3 border text-center transition-colors cursor-pointer ${
+                          className={`py-2 px-2 text-center transition-colors cursor-pointer text-xs ${
                             f.colourMode === 'bw'
-                              ? 'bg-[#111215] text-[#FBF9F5] border-[#111215] font-bold'
-                              : 'bg-[#FBF9F5] text-[#65625D] border-[#CFC7BB] hover:border-[#111215]'
+                              ? 'bg-[#111215] text-[#FBF9F5] border-[#111215] font-bold border'
+                              : 'bg-[#FBF9F5] text-[#65625D] border-[#CFC7BB] hover:border-[#111215] border'
                           }`}
                         >
                           B&amp;W (₹{pricing.bw})
@@ -411,15 +448,33 @@ export default function NewOrderPage() {
                         <button
                           type="button"
                           onClick={() => updateFile(f.id, { colourMode: 'colour' })}
-                          className={`py-2 px-3 border text-center transition-colors cursor-pointer ${
+                          className={`py-2 px-2 text-center transition-colors cursor-pointer text-xs ${
                             f.colourMode === 'colour'
-                              ? 'bg-[#1D4ED8] text-white border-[#1D4ED8] font-bold'
-                              : 'bg-[#FBF9F5] text-[#65625D] border-[#CFC7BB] hover:border-[#1D4ED8]'
+                              ? 'bg-[#1D4ED8] text-white border-[#1D4ED8] font-bold border'
+                              : 'bg-[#FBF9F5] text-[#65625D] border-[#CFC7BB] hover:border-[#1D4ED8] border'
                           }`}
                         >
                           COLOUR (₹{pricing.colour})
                         </button>
                       </div>
+                    </div>
+
+                    {/* Print Layout Switcher */}
+                    <div>
+                      <p className="font-mono-code text-[11px] text-[#65625D] uppercase mb-2">
+                        Print Layout
+                      </p>
+                      <select
+                        value={f.printSide || 'separate_pages'}
+                        onChange={(e) => updateFile(f.id, { printSide: e.target.value as 'separate_pages' | 'both_sides' })}
+                        className="w-full border border-[#CFC7BB] bg-[#FBF9F5] py-2 px-2.5 text-xs font-mono-code text-[#111215] focus:outline-none focus:border-[#111215] cursor-pointer"
+                      >
+                        <option value="separate_pages">1. Separate pages (1-sided)</option>
+                        <option value="both_sides">2. Both sides of page (2-sided)</option>
+                      </select>
+                      <p className="text-[10px] text-[#98948C] font-mono-code mt-1">
+                        {f.printSide === 'both_sides' ? 'Back-to-back duplex' : 'Single-sided sheets'}
+                      </p>
                     </div>
 
                     {/* Copies Stepper */}
@@ -435,7 +490,7 @@ export default function NewOrderPage() {
                         >
                           −
                         </button>
-                        <span className="w-10 text-center font-bold text-sm text-[#111215]">
+                        <span className="w-8 text-center font-bold text-sm text-[#111215]">
                           {f.copies}
                         </span>
                         <button
@@ -512,7 +567,7 @@ export default function NewOrderPage() {
                 <div className="min-w-0">
                   <p className="font-bold text-[#111215] truncate">{f.name}</p>
                   <p className="text-[11px] text-[#65625D] mt-0.5">
-                    {pageCount} pgs × {f.copies} {f.copies === 1 ? 'copy' : 'copies'} · {f.colourMode === 'bw' ? 'B&W' : 'Colour'} (₹{pricePerPage}/pg)
+                    {pageCount} pgs × {f.copies} {f.copies === 1 ? 'copy' : 'copies'} · {f.colourMode === 'bw' ? 'B&W' : 'Colour'} · {f.printSide === 'both_sides' ? 'Both sides (Duplex)' : 'Separate pages'} (₹{pricePerPage}/pg)
                   </p>
                 </div>
                 <span className="font-bold text-[#111215] text-sm shrink-0">
@@ -548,6 +603,111 @@ export default function NewOrderPage() {
               className="w-full sm:flex-1 bg-[#111215] hover:bg-[#15803D] disabled:opacity-50 text-[#FBF9F5] py-3 text-xs uppercase tracking-wider font-bold flex items-center justify-center gap-2"
             >
               {submitting ? 'Submitting to Press...' : 'Confirm & Dispatch Print'}
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* ── PRINT LAYOUT DROPDOWN QUESTION BOX MODAL ── */}
+      <Modal
+        isOpen={layoutModalOpen}
+        onClose={() => handleApplyLayout(selectedLayout)}
+        title="Print Layout Preference"
+        size="md"
+      >
+        <div className="p-4 sm:p-6 space-y-5 font-mono-code text-xs">
+          <div className="space-y-1">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-[#1D4ED8]">
+              [ PRINT SPECIFICATION ]
+            </span>
+            <p className="font-display font-black text-lg sm:text-xl text-[#111215]">
+              How would you like to print your document(s)?
+            </p>
+            <p className="text-[#65625D] text-xs">
+              Choose your page layout preference for the uploaded file(s):
+            </p>
+          </div>
+
+          {/* The dropdown question box requested by user */}
+          <div className="space-y-2">
+            <label htmlFor="print-layout-select" className="text-[11px] uppercase tracking-wider text-[#65625D] font-bold block">
+              Print Option:
+            </label>
+            <select
+              id="print-layout-select"
+              value={selectedLayout}
+              onChange={(e) => setSelectedLayout(e.target.value as 'separate_pages' | 'both_sides')}
+              className="w-full border-2 border-[#111215] bg-[#FBF9F5] p-3 text-xs sm:text-sm font-mono-code text-[#111215] focus:outline-none focus:border-[#1D4ED8] rounded-none cursor-pointer font-bold"
+            >
+              <option value="separate_pages">
+                1. print all in seprate pages (select this if the uploaded file is just one page)
+              </option>
+              <option value="both_sides">
+                2. print on both sides of the page
+              </option>
+            </select>
+          </div>
+
+          {/* Interactive visual selection cards matching both options */}
+          <div className="grid grid-cols-1 gap-2.5 pt-1">
+            <button
+              type="button"
+              onClick={() => setSelectedLayout('separate_pages')}
+              className={`p-3.5 border text-left transition-all cursor-pointer flex items-start gap-3 ${
+                selectedLayout === 'separate_pages'
+                  ? 'border-[#111215] bg-[#111215] text-[#FBF9F5]'
+                  : 'border-[#D8D1C3] bg-[#FBF9F5] text-[#111215] hover:border-[#111215]'
+              }`}
+            >
+              <span className={`h-4 w-4 rounded-full border-2 mt-0.5 shrink-0 flex items-center justify-center ${
+                selectedLayout === 'separate_pages' ? 'border-white' : 'border-[#111215]'
+              }`}>
+                {selectedLayout === 'separate_pages' && <span className="h-2 w-2 rounded-full bg-white" />}
+              </span>
+              <div>
+                <p className="font-bold text-xs sm:text-sm">
+                  1. Print all in separate pages
+                </p>
+                <p className={`text-[11px] mt-0.5 ${selectedLayout === 'separate_pages' ? 'text-[#D5CDBC]' : 'text-[#65625D]'}`}>
+                  Select this if the uploaded file is just one page, or each page on a separate sheet.
+                </p>
+              </div>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setSelectedLayout('both_sides')}
+              className={`p-3.5 border text-left transition-all cursor-pointer flex items-start gap-3 ${
+                selectedLayout === 'both_sides'
+                  ? 'border-[#1D4ED8] bg-[#1D4ED8] text-white'
+                  : 'border-[#D8D1C3] bg-[#FBF9F5] text-[#111215] hover:border-[#1D4ED8]'
+              }`}
+            >
+              <span className={`h-4 w-4 rounded-full border-2 mt-0.5 shrink-0 flex items-center justify-center ${
+                selectedLayout === 'both_sides' ? 'border-white' : 'border-[#111215]'
+              }`}>
+                {selectedLayout === 'both_sides' && <span className="h-2 w-2 rounded-full bg-white" />}
+              </span>
+              <div>
+                <p className="font-bold text-xs sm:text-sm">
+                  2. Print on both sides of the page
+                </p>
+                <p className={`text-[11px] mt-0.5 ${selectedLayout === 'both_sides' ? 'text-blue-100' : 'text-[#65625D]'}`}>
+                  Double-sided (Duplex) printing · Prints back-to-back on both sides of each sheet.
+                </p>
+              </div>
+            </button>
+          </div>
+
+          {/* Action button */}
+          <div className="pt-2 flex justify-end">
+            <button
+              type="button"
+              onClick={() => handleApplyLayout(selectedLayout)}
+              className="w-full bg-[#111215] hover:bg-[#1D4ED8] text-[#FBF9F5] font-mono-code text-xs uppercase tracking-wider font-bold py-3.5 px-6 transition-colors shadow-sm cursor-pointer flex items-center justify-center gap-2"
+            >
+              <span>Confirm &amp; Continue</span>
+              <ArrowRight className="h-4 w-4" />
             </button>
           </div>
         </div>

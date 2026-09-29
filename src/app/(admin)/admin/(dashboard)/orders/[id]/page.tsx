@@ -88,8 +88,9 @@ export default async function AdminOrderDetailPage({ params }: Props) {
                     <AdminFileDownload filePath={item.file_path} fileName={item.file_name} />
                   </div>
 
-                  <div className="grid grid-cols-3 gap-2 bg-[#FBF9F5] border border-[#E5DFD5] p-3 text-[11px] text-[#65625D]">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 bg-[#FBF9F5] border border-[#E5DFD5] p-3 text-[11px] text-[#65625D]">
                     <div>Mode: <strong className="text-[#111215] uppercase">{item.colour_mode === 'bw' ? 'B&W' : 'Colour'}</strong></div>
+                    <div>Sides: <strong className="text-[#1D4ED8] uppercase">{item.print_side === 'both_sides' ? 'Both Sides (Duplex)' : 'Separate Pages'}</strong></div>
                     <div>Copies: <strong className="text-[#111215]">{item.copies}</strong></div>
                     <div>Subtotal: <strong className="text-[#111215]">{formatCurrency(item.item_total)}</strong></div>
                   </div>
