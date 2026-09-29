@@ -339,7 +339,7 @@ export default function RegisterPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block font-mono-code text-xs font-semibold text-[#111215] uppercase tracking-wider mb-1.5">
-                      Year of Study
+                      Year of Study <span className="text-[#DC2626]">*</span>
                     </label>
                     <select
                       required
@@ -356,7 +356,7 @@ export default function RegisterPage() {
 
                   <div>
                     <label className="block font-mono-code text-xs font-semibold text-[#111215] uppercase tracking-wider mb-1.5">
-                      Section
+                      Section <span className="text-[#DC2626]">*</span>
                     </label>
                     <select
                       required
