@@ -561,166 +561,178 @@ export default function NewOrderPage() {
         </div>
       )}
 
-      {/* ── STEP 3: REVIEW & CONFIRM (FULL PAGE) ── */}
+      {/* ── STEP 3: REVIEW & CONFIRM (CLEAN & PREMIUM) ── */}
       {step === 'confirm' && (
-        <div className="space-y-6 sm:space-y-7 animate-fade-in">
-          
-          {/* Requisition Docket Header Box */}
-          <div className="border-2 border-[#111215] bg-[#FBF9F5] p-5 sm:p-6 shadow-[4px_4px_0px_#111215] relative">
-            <span className="absolute top-2 left-2 text-[10px] font-mono-code text-[#B5ADA0] select-none">+</span>
-            <span className="absolute top-2 right-2 text-[10px] font-mono-code text-[#B5ADA0] select-none">+</span>
-            <span className="absolute bottom-2 left-2 text-[10px] font-mono-code text-[#B5ADA0] select-none">+</span>
-            <span className="absolute bottom-2 right-2 text-[10px] font-mono-code text-[#B5ADA0] select-none">+</span>
-
-            <div className="space-y-1">
-              <span className="font-mono-code text-[11px] font-bold uppercase tracking-widest text-[#1D4ED8] block">
-                [ FORM REQ-204 · CAMPUS DESK DISPATCH ]
-              </span>
-              <h2 className="font-display font-black text-xl sm:text-2xl text-[#111215] tracking-tight">
-                Review &amp; Verify Requisition
-              </h2>
-              <p className="font-mono-code text-xs text-[#65625D]">
-                Please review your print specifications, duplex layouts, and estimated charges before dispatching to the production queue.
-              </p>
-            </div>
-          </div>
-
-          {/* Official Press Advisory Docket */}
-          <div className="border border-[#111215] bg-[#F4F0E8] p-4 sm:p-4.5 relative">
-            <span className="absolute -top-2.5 left-4 bg-[#111215] text-[#FBF9F5] px-2.5 py-0.5 font-mono-code text-[9px] uppercase tracking-widest font-bold">
-              PRESS ADVISORY
-            </span>
-            <div className="flex items-start gap-3.5 pt-1">
-              <Printer className="h-5 w-5 text-[#111215] shrink-0 mt-0.5" />
-              <div className="space-y-1 font-mono-code">
-                <p className="font-bold text-[#111215] uppercase tracking-wider text-xs">
-                  Immediate Hardware Queueing Notice
-                </p>
-                <p className="text-[#65625D] text-xs leading-relaxed">
-                  Upon confirmation, print jobs are routed straight to the high-speed campus production station. Specifications cannot be adjusted after confirmation.
+        <div className="space-y-6 animate-fade-in">
+          <div className="bg-white border border-[#E5DFD5] p-6 sm:p-8 shadow-xs space-y-6">
+            
+            {/* Header row */}
+            <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-2 border-b border-[#E5DFD5] pb-5">
+              <div>
+                <span className="font-mono-code text-[11px] font-semibold text-[#1D4ED8] uppercase tracking-wider block mb-1">
+                  [ STEP 03 · FINAL REQUISITION REVIEW ]
+                </span>
+                <h2 className="font-display font-black text-2xl sm:text-3xl text-[#111215] tracking-tight">
+                  Verify Print Order
+                </h2>
+                <p className="text-xs text-[#65625D] mt-1 font-mono-code">
+                  Review your job specifications and billing before dispatching to the campus print desk.
                 </p>
               </div>
-            </div>
-          </div>
 
-          {/* Line items list / Requisition Manifest */}
-          <div className="border-2 border-[#111215] bg-white shadow-[4px_4px_0px_#111215]">
-            <div className="bg-[#111215] text-[#FBF9F5] px-5 py-3 flex items-center justify-between font-mono-code text-xs uppercase font-bold tracking-widest">
-              <span className="flex items-center gap-2">
-                <span>DOCUMENT SPECIFICATIONS</span>
-                <span className="text-[#D5CDBC]">({orderItems.length})</span>
-              </span>
-              <span>ITEM SUBTOTAL</span>
+              <div className="sm:text-right shrink-0">
+                <span className="font-mono-code text-[10px] text-[#98948C] uppercase tracking-wider block">
+                  Status
+                </span>
+                <span className="inline-flex items-center gap-1.5 font-mono-code text-xs font-bold text-[#15803D]">
+                  <span className="h-2 w-2 rounded-full bg-[#15803D] animate-pulse" />
+                  Ready to Dispatch
+                </span>
+              </div>
             </div>
 
-            <div className="divide-y divide-[#E5DFD5]">
-              {orderItems.map(({ file: f, pageCount, pricePerPage, itemTotal }) => (
-                <div key={f.id} className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white hover:bg-[#FBF9F5] transition-colors">
-                  <div className="space-y-2 min-w-0">
-                    <div className="flex items-center gap-3 min-w-0">
-                      <FileIcon type={f.type} name={f.name} />
-                      <p className="font-mono-code text-sm font-bold text-[#111215] truncate">
-                        {f.name}
-                      </p>
+            {/* Clean Advisory Notice */}
+            <div className="p-4 bg-[#F8F6F0] border border-[#E5DFD5] flex items-start gap-3">
+              <Printer className="h-4 w-4 text-[#1D4ED8] shrink-0 mt-0.5" />
+              <div className="text-xs font-mono-code text-[#65625D] leading-relaxed">
+                <strong className="text-[#111215] font-semibold">Immediate Press Routing: </strong>
+                Once confirmed, documents are queued directly into the production printer station. Specifications cannot be adjusted after submission.
+              </div>
+            </div>
+
+            {/* Requisition Items Table */}
+            <div className="space-y-3">
+              <div className="flex justify-between items-center font-mono-code text-[11px] text-[#65625D] uppercase tracking-wider pb-2 border-b border-[#E5DFD5]">
+                <span>Attached Documents ({orderItems.length})</span>
+                <span>Subtotal</span>
+              </div>
+
+              <div className="divide-y divide-[#E5DFD5]">
+                {orderItems.map(({ file: f, pageCount, pricePerPage, itemTotal }) => (
+                  <div
+                    key={f.id}
+                    className="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                  >
+                    <div className="space-y-1.5 min-w-0">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <FileIcon type={f.type} name={f.name} />
+                        <span className="font-mono-code font-bold text-xs sm:text-sm text-[#111215] truncate">
+                          {f.name}
+                        </span>
+                      </div>
+
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 font-mono-code text-xs text-[#65625D]">
+                        <span className={`inline-flex items-center px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider border ${
+                          f.colourMode === 'colour'
+                            ? 'bg-blue-50 text-[#1D4ED8] border-blue-200'
+                            : 'bg-neutral-100 text-neutral-800 border-neutral-200'
+                        }`}>
+                          {f.colourMode === 'colour' ? 'Colour' : 'B&W'}
+                        </span>
+
+                        <span className="inline-flex items-center px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-neutral-50 text-neutral-700 border border-neutral-200">
+                          {f.printSide === 'both_sides' ? '2-Sided (Duplex)' : '1-Sided (Separate)'}
+                        </span>
+
+                        <span>
+                          {pageCount} pgs × {f.copies} {f.copies === 1 ? 'copy' : 'copies'}
+                        </span>
+
+                        <span className="text-[#98948C]">·</span>
+
+                        <span>
+                          ₹{pricePerPage}/pg
+                        </span>
+                      </div>
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-2 font-mono-code text-xs">
-                      {/* Colour Mode Badge */}
-                      <span className={`px-2.5 py-1 font-bold uppercase tracking-wider border text-[11px] ${
-                        f.colourMode === 'colour'
-                          ? 'bg-blue-50 text-[#1D4ED8] border-[#1D4ED8]'
-                          : 'bg-[#111215] text-[#FBF9F5] border-[#111215]'
-                      }`}>
-                        {f.colourMode === 'colour' ? 'Colour Print' : 'B&W Print'}
-                      </span>
-
-                      {/* Print Layout Badge */}
-                      <span className="px-2.5 py-1 font-bold uppercase tracking-wider border border-[#CFC7BB] bg-[#FBF9F5] text-[#111215] text-[11px]">
-                        {f.printSide === 'both_sides' ? '2-Sided (Duplex)' : '1-Sided (Separate)'}
-                      </span>
-
-                      {/* Copies & Rate */}
-                      <span className="text-[#65625D]">
-                        {pageCount} pgs × {f.copies} {f.copies === 1 ? 'copy' : 'copies'} · ₹{pricePerPage}/pg
+                    <div className="sm:text-right shrink-0 font-mono-code">
+                      <span className="font-bold text-sm sm:text-base text-[#111215]">
+                        {formatCurrency(itemTotal)}
                       </span>
                     </div>
                   </div>
+                ))}
+              </div>
+            </div>
 
-                  <div className="text-right shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-[#F0EBE3] font-mono-code">
-                    <span className="font-bold text-[#111215] text-base sm:text-lg">
-                      {formatCurrency(itemTotal)}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+            {/* Details Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+              <div className="p-4 bg-[#FBF9F5] border border-[#E5DFD5] space-y-0.5">
+                <span className="font-mono-code text-[10px] text-[#98948C] uppercase tracking-wider block">
+                  Pickup Counter
+                </span>
+                <span className="font-mono-code font-bold text-xs text-[#111215] block">
+                  KCC Campus Print Desk · Ground Floor
+                </span>
+              </div>
 
-          {/* Campus Desk Pickup & Payment Details */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 font-mono-code text-xs">
-            <div className="p-4 bg-[#F3EFE8] border-2 border-[#CFC7BB] space-y-1">
-              <span className="text-[10px] uppercase font-bold text-[#65625D] tracking-wider block">Pickup Counter</span>
-              <span className="font-bold text-[#111215] text-sm">KCC Campus Print Desk · Ground Floor</span>
+              <div className="p-4 bg-[#FBF9F5] border border-[#E5DFD5] space-y-0.5">
+                <span className="font-mono-code text-[10px] text-[#98948C] uppercase tracking-wider block">
+                  Payment Instructions
+                </span>
+                <span className="font-mono-code font-bold text-xs text-[#111215] block">
+                  UPI QR Code or Cash at Desk
+                </span>
+              </div>
             </div>
-            <div className="p-4 bg-[#F3EFE8] border-2 border-[#CFC7BB] space-y-1">
-              <span className="text-[10px] uppercase font-bold text-[#65625D] tracking-wider block">Payment Instructions</span>
-              <span className="font-bold text-[#111215] text-sm">UPI QR Code or Cash at Desk</span>
-            </div>
-          </div>
 
-          {/* Grand total banner */}
-          <div className="border-2 border-[#111215] bg-[#111215] text-[#FBF9F5] p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 font-mono-code shadow-[4px_4px_0px_#111215]">
-            <div className="space-y-1">
-              <span className="text-[11px] font-bold uppercase tracking-widest text-[#D5CDBC] block">
-                Total Amount Due at Desk
-              </span>
-              <span className="text-xs text-[#98948C]">
-                {totalPagesCount} total page{totalPagesCount === 1 ? '' : 's'} across {orderItems.length} file{orderItems.length === 1 ? '' : 's'} · Live press verification
-              </span>
-            </div>
-            <div className="text-left sm:text-right">
-              <span className="font-display font-black text-3xl sm:text-4xl text-white tracking-tight">
-                {formatCurrency(grandTotal)}
-              </span>
-            </div>
-          </div>
+            {/* Total Banner */}
+            <div className="border border-[#111215] bg-[#111215] text-[#FBF9F5] p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 font-mono-code">
+              <div>
+                <span className="text-[11px] text-[#D5CDBC] uppercase tracking-wider block">
+                  Total Requisition Amount
+                </span>
+                <p className="text-xs text-[#98948C] mt-0.5">
+                  {totalPagesCount} total page{totalPagesCount === 1 ? '' : 's'} across {orderItems.length} {orderItems.length === 1 ? 'document' : 'documents'}
+                </p>
+              </div>
 
-          {submitError && (
-            <div className="p-4 text-xs text-[#B91C1C] bg-red-50 border-2 border-[#B91C1C] font-mono-code flex items-center gap-2">
-              <AlertCircle className="h-4 w-4 shrink-0" />
-              <span>{submitError}</span>
+              <div className="text-left sm:text-right">
+                <span className="font-display font-black text-2xl sm:text-3xl text-white tracking-tight">
+                  {formatCurrency(grandTotal)}
+                </span>
+              </div>
             </div>
-          )}
 
-          {/* Action buttons */}
-          <div className="flex flex-col-reverse sm:flex-row gap-4 pt-2">
-            <button
-              type="button"
-              onClick={() => setStep('configure')}
-              disabled={submitting}
-              className="w-full sm:w-1/3 border-2 border-[#111215] bg-white hover:bg-[#F3EFE8] text-[#111215] py-4 px-5 font-mono-code text-xs uppercase tracking-wider font-bold transition-colors cursor-pointer flex items-center justify-center gap-2"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              <span>Modify Settings</span>
-            </button>
-            <button
-              type="button"
-              onClick={handleConfirmOrder}
-              disabled={submitting}
-              className="w-full sm:w-2/3 bg-[#111215] hover:bg-[#15803D] disabled:opacity-50 text-[#FBF9F5] py-4 px-6 font-mono-code text-xs uppercase tracking-wider font-bold transition-all shadow-[4px_4px_0px_#15803D] cursor-pointer flex items-center justify-center gap-2.5"
-            >
-              {submitting ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  <span>Submitting to Press...</span>
-                </>
-              ) : (
-                <>
-                  <span>Confirm &amp; Dispatch Print</span>
-                  <ArrowRight className="h-4 w-4" />
-                </>
-              )}
-            </button>
+            {submitError && (
+              <div className="p-3.5 bg-red-50 border border-red-200 text-[#B91C1C] text-xs font-mono-code flex items-center gap-2">
+                <AlertCircle className="h-4 w-4 shrink-0" />
+                <span>{submitError}</span>
+              </div>
+            )}
+
+            {/* Navigation Actions */}
+            <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-3">
+              <button
+                type="button"
+                onClick={() => setStep('configure')}
+                disabled={submitting}
+                className="inline-flex items-center justify-center gap-2 border border-[#CFC7BB] hover:border-[#111215] bg-white hover:bg-[#F3EFE8] text-[#111215] py-3.5 px-6 font-mono-code text-xs uppercase tracking-wider font-bold transition-colors cursor-pointer"
+              >
+                <ArrowLeft className="h-3.5 w-3.5" />
+                <span>Back to Settings</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleConfirmOrder}
+                disabled={submitting}
+                className="inline-flex items-center justify-center gap-2 bg-[#111215] hover:bg-[#1D4ED8] disabled:opacity-50 text-[#FBF9F5] py-3.5 px-8 font-mono-code text-xs uppercase tracking-wider font-bold transition-colors shadow-sm cursor-pointer"
+              >
+                {submitting ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span>Submitting to Press...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Confirm &amp; Dispatch Print</span>
+                    <ArrowRight className="h-4 w-4" />
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </div>
       )}
