@@ -4,7 +4,6 @@ import { useState, useCallback, useEffect } from 'react';
 import { useDropzone, FileRejection } from 'react-dropzone';
 import { createClient } from '@/lib/supabase/client';
 import { UploadedFile, ColourMode } from '@/types';
-import { Modal } from '@/components/ui/Modal';
 import {
   Upload, X, FileText, Image, File, AlertCircle,
   CheckCircle2, Loader2, ArrowRight, ArrowLeft,
@@ -27,7 +26,6 @@ export default function NewOrderPage() {
   const [files, setFiles] = useState<UploadedFile[]>([]);
   const [step, setStep] = useState<'upload' | 'configure' | 'confirm'>('upload');
   const [pricing, setPricing] = useState({ bw: 3, colour: 5 });
-  const [confirmOpen, setConfirmOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
   const [globalError, setGlobalError] = useState('');
@@ -259,11 +257,20 @@ export default function NewOrderPage() {
         <button
           disabled={files.length === 0}
           onClick={() => setStep('configure')}
-          className={`pb-3 px-6 border-b-2 -mb-px transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${
+          className={`pb-3 px-4 sm:px-6 border-b-2 -mb-px transition-colors shrink-0 disabled:opacity-40 disabled:cursor-not-allowed ${
             step === 'configure' ? 'border-[#111215] text-[#111215]' : 'border-transparent text-[#98948C] hover:text-[#111215]'
           }`}
         >
           02. Print Settings
+        </button>
+        <button
+          disabled={files.length === 0 || hasMissingLayout}
+          onClick={() => setStep('confirm')}
+          className={`pb-3 px-4 sm:px-6 border-b-2 -mb-px transition-colors shrink-0 disabled:opacity-40 disabled:cursor-not-allowed ${
+            step === 'confirm' ? 'border-[#111215] text-[#111215]' : 'border-transparent text-[#98948C] hover:text-[#111215]'
+          }`}
+        >
+          03. Review &amp; Confirm
         </button>
       </div>
 
@@ -542,7 +549,7 @@ export default function NewOrderPage() {
                     setSubmitError('Please choose a print layout for all documents.');
                     return;
                   }
-                  setConfirmOpen(true);
+                  setStep('confirm');
                 }}
                 className="inline-flex items-center justify-center gap-2 bg-[#111215] hover:bg-[#1D4ED8] disabled:opacity-40 disabled:cursor-not-allowed text-[#FBF9F5] font-mono-code text-xs uppercase tracking-wider font-bold py-3.5 px-6 rounded-none transition-colors shadow-sm cursor-pointer"
               >
@@ -554,38 +561,51 @@ export default function NewOrderPage() {
         </div>
       )}
 
-      {/* ── CONFIRMATION MODAL ── */}
-      <Modal
-        isOpen={confirmOpen}
-        onClose={() => setConfirmOpen(false)}
-        title="Verify Print Requisition"
-        category="[ FORM REQ-204 · CAMPUS DESK DISPATCH ]"
-        subtitle="Review document specifications, print layouts, and estimated desk charges before dispatch."
-        size="lg"
-      >
-        <div className="p-4 sm:p-6 space-y-4 sm:space-y-5 font-mono-code text-xs">
+      {/* ── STEP 3: REVIEW & CONFIRM (FULL PAGE) ── */}
+      {step === 'confirm' && (
+        <div className="space-y-6 sm:space-y-7 animate-fade-in">
           
+          {/* Requisition Docket Header Box */}
+          <div className="border-2 border-[#111215] bg-[#FBF9F5] p-5 sm:p-6 shadow-[4px_4px_0px_#111215] relative">
+            <span className="absolute top-2 left-2 text-[10px] font-mono-code text-[#B5ADA0] select-none">+</span>
+            <span className="absolute top-2 right-2 text-[10px] font-mono-code text-[#B5ADA0] select-none">+</span>
+            <span className="absolute bottom-2 left-2 text-[10px] font-mono-code text-[#B5ADA0] select-none">+</span>
+            <span className="absolute bottom-2 right-2 text-[10px] font-mono-code text-[#B5ADA0] select-none">+</span>
+
+            <div className="space-y-1">
+              <span className="font-mono-code text-[11px] font-bold uppercase tracking-widest text-[#1D4ED8] block">
+                [ FORM REQ-204 · CAMPUS DESK DISPATCH ]
+              </span>
+              <h2 className="font-display font-black text-xl sm:text-2xl text-[#111215] tracking-tight">
+                Review &amp; Verify Requisition
+              </h2>
+              <p className="font-mono-code text-xs text-[#65625D]">
+                Please review your print specifications, duplex layouts, and estimated charges before dispatching to the production queue.
+              </p>
+            </div>
+          </div>
+
           {/* Official Press Advisory Docket */}
-          <div className="border border-[#111215] bg-[#F4F0E8] p-3.5 sm:p-4 relative">
-            <span className="absolute -top-2 left-3 bg-[#111215] text-[#FBF9F5] px-2 py-0.5 text-[9px] uppercase tracking-widest font-bold">
+          <div className="border border-[#111215] bg-[#F4F0E8] p-4 sm:p-4.5 relative">
+            <span className="absolute -top-2.5 left-4 bg-[#111215] text-[#FBF9F5] px-2.5 py-0.5 font-mono-code text-[9px] uppercase tracking-widest font-bold">
               PRESS ADVISORY
             </span>
-            <div className="flex items-start gap-3 pt-0.5">
-              <Printer className="h-4 w-4 text-[#111215] shrink-0 mt-0.5" />
-              <div className="space-y-0.5">
-                <p className="font-bold text-[#111215] uppercase tracking-wider text-[11px]">
-                  Direct Station Routing
+            <div className="flex items-start gap-3.5 pt-1">
+              <Printer className="h-5 w-5 text-[#111215] shrink-0 mt-0.5" />
+              <div className="space-y-1 font-mono-code">
+                <p className="font-bold text-[#111215] uppercase tracking-wider text-xs">
+                  Immediate Hardware Queueing Notice
                 </p>
-                <p className="text-[#65625D] text-[11px] leading-relaxed">
-                  Upon confirmation, print jobs are routed straight to the high-speed campus press queue. Layout and specifications cannot be edited once confirmed.
+                <p className="text-[#65625D] text-xs leading-relaxed">
+                  Upon confirmation, print jobs are routed straight to the high-speed campus production station. Specifications cannot be adjusted after confirmation.
                 </p>
               </div>
             </div>
           </div>
 
           {/* Line items list / Requisition Manifest */}
-          <div className="border-2 border-[#111215] bg-white shadow-xs">
-            <div className="bg-[#111215] text-[#FBF9F5] px-4 py-2.5 flex items-center justify-between text-[10px] uppercase font-bold tracking-widest">
+          <div className="border-2 border-[#111215] bg-white shadow-[4px_4px_0px_#111215]">
+            <div className="bg-[#111215] text-[#FBF9F5] px-5 py-3 flex items-center justify-between font-mono-code text-xs uppercase font-bold tracking-widest">
               <span className="flex items-center gap-2">
                 <span>DOCUMENT SPECIFICATIONS</span>
                 <span className="text-[#D5CDBC]">({orderItems.length})</span>
@@ -593,29 +613,29 @@ export default function NewOrderPage() {
               <span>ITEM SUBTOTAL</span>
             </div>
 
-            <div className="divide-y divide-[#E5DFD5] max-h-60 overflow-y-auto">
+            <div className="divide-y divide-[#E5DFD5]">
               {orderItems.map(({ file: f, pageCount, pricePerPage, itemTotal }) => (
-                <div key={f.id} className="p-3.5 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white hover:bg-[#FBF9F5] transition-colors">
-                  <div className="space-y-1.5 min-w-0">
-                    <div className="flex items-center gap-2.5 min-w-0">
+                <div key={f.id} className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white hover:bg-[#FBF9F5] transition-colors">
+                  <div className="space-y-2 min-w-0">
+                    <div className="flex items-center gap-3 min-w-0">
                       <FileIcon type={f.type} name={f.name} />
-                      <p className="font-bold text-[#111215] truncate text-xs">
+                      <p className="font-mono-code text-sm font-bold text-[#111215] truncate">
                         {f.name}
                       </p>
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-1.5 text-[10px]">
+                    <div className="flex flex-wrap items-center gap-2 font-mono-code text-xs">
                       {/* Colour Mode Badge */}
-                      <span className={`px-2 py-0.5 font-bold uppercase tracking-wider border ${
+                      <span className={`px-2.5 py-1 font-bold uppercase tracking-wider border text-[11px] ${
                         f.colourMode === 'colour'
                           ? 'bg-blue-50 text-[#1D4ED8] border-[#1D4ED8]'
                           : 'bg-[#111215] text-[#FBF9F5] border-[#111215]'
                       }`}>
-                        {f.colourMode === 'colour' ? 'Colour' : 'B&W'}
+                        {f.colourMode === 'colour' ? 'Colour Print' : 'B&W Print'}
                       </span>
 
                       {/* Print Layout Badge */}
-                      <span className="px-2 py-0.5 font-bold uppercase tracking-wider border border-[#CFC7BB] bg-[#FBF9F5] text-[#111215]">
+                      <span className="px-2.5 py-1 font-bold uppercase tracking-wider border border-[#CFC7BB] bg-[#FBF9F5] text-[#111215] text-[11px]">
                         {f.printSide === 'both_sides' ? '2-Sided (Duplex)' : '1-Sided (Separate)'}
                       </span>
 
@@ -626,8 +646,8 @@ export default function NewOrderPage() {
                     </div>
                   </div>
 
-                  <div className="text-right shrink-0 pt-1 sm:pt-0 border-t sm:border-t-0 border-[#F0EBE3]">
-                    <span className="font-bold text-[#111215] text-sm sm:text-base">
+                  <div className="text-right shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-[#F0EBE3] font-mono-code">
+                    <span className="font-bold text-[#111215] text-base sm:text-lg">
                       {formatCurrency(itemTotal)}
                     </span>
                   </div>
@@ -637,57 +657,57 @@ export default function NewOrderPage() {
           </div>
 
           {/* Campus Desk Pickup & Payment Details */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">
-            <div className="p-3 bg-[#F3EFE8] border border-[#CFC7BB] space-y-0.5">
-              <span className="text-[9px] uppercase font-bold text-[#65625D] tracking-wider block">Pickup Counter</span>
-              <span className="font-bold text-[#111215]">KCC Campus Print Desk · Ground Floor</span>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 font-mono-code text-xs">
+            <div className="p-4 bg-[#F3EFE8] border-2 border-[#CFC7BB] space-y-1">
+              <span className="text-[10px] uppercase font-bold text-[#65625D] tracking-wider block">Pickup Counter</span>
+              <span className="font-bold text-[#111215] text-sm">KCC Campus Print Desk · Ground Floor</span>
             </div>
-            <div className="p-3 bg-[#F3EFE8] border border-[#CFC7BB] space-y-0.5">
-              <span className="text-[9px] uppercase font-bold text-[#65625D] tracking-wider block">Payment Instructions</span>
-              <span className="font-bold text-[#111215]">UPI QR Code or Cash at Desk</span>
+            <div className="p-4 bg-[#F3EFE8] border-2 border-[#CFC7BB] space-y-1">
+              <span className="text-[10px] uppercase font-bold text-[#65625D] tracking-wider block">Payment Instructions</span>
+              <span className="font-bold text-[#111215] text-sm">UPI QR Code or Cash at Desk</span>
             </div>
           </div>
 
           {/* Grand total banner */}
-          <div className="border-2 border-[#111215] bg-[#111215] text-[#FBF9F5] p-4 sm:p-4.5 flex items-center justify-between">
-            <div className="space-y-0.5">
-              <span className="text-[10px] font-bold uppercase tracking-widest text-[#D5CDBC] block">
+          <div className="border-2 border-[#111215] bg-[#111215] text-[#FBF9F5] p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 font-mono-code shadow-[4px_4px_0px_#111215]">
+            <div className="space-y-1">
+              <span className="text-[11px] font-bold uppercase tracking-widest text-[#D5CDBC] block">
                 Total Amount Due at Desk
               </span>
-              <span className="text-[11px] text-[#98948C]">
-                {totalPagesCount} total page{totalPagesCount === 1 ? '' : 's'} across {orderItems.length} file{orderItems.length === 1 ? '' : 's'}
+              <span className="text-xs text-[#98948C]">
+                {totalPagesCount} total page{totalPagesCount === 1 ? '' : 's'} across {orderItems.length} file{orderItems.length === 1 ? '' : 's'} · Live press verification
               </span>
             </div>
-            <div className="text-right">
-              <span className="font-display font-black text-2xl sm:text-3xl text-white tracking-tight">
+            <div className="text-left sm:text-right">
+              <span className="font-display font-black text-3xl sm:text-4xl text-white tracking-tight">
                 {formatCurrency(grandTotal)}
               </span>
             </div>
           </div>
 
           {submitError && (
-            <div className="p-3 text-xs text-[#B91C1C] bg-red-50 border-2 border-[#B91C1C] flex items-center gap-2">
+            <div className="p-4 text-xs text-[#B91C1C] bg-red-50 border-2 border-[#B91C1C] font-mono-code flex items-center gap-2">
               <AlertCircle className="h-4 w-4 shrink-0" />
               <span>{submitError}</span>
             </div>
           )}
 
           {/* Action buttons */}
-          <div className="flex flex-col-reverse sm:flex-row gap-3 pt-1">
+          <div className="flex flex-col-reverse sm:flex-row gap-4 pt-2">
             <button
               type="button"
-              onClick={() => setConfirmOpen(false)}
+              onClick={() => setStep('configure')}
               disabled={submitting}
-              className="w-full sm:w-1/3 border-2 border-[#111215] bg-white hover:bg-[#F3EFE8] text-[#111215] py-3.5 px-4 text-xs uppercase tracking-wider font-bold transition-colors cursor-pointer flex items-center justify-center gap-1.5"
+              className="w-full sm:w-1/3 border-2 border-[#111215] bg-white hover:bg-[#F3EFE8] text-[#111215] py-4 px-5 font-mono-code text-xs uppercase tracking-wider font-bold transition-colors cursor-pointer flex items-center justify-center gap-2"
             >
-              <ArrowLeft className="h-3.5 w-3.5" />
+              <ArrowLeft className="h-4 w-4" />
               <span>Modify Settings</span>
             </button>
             <button
               type="button"
               onClick={handleConfirmOrder}
               disabled={submitting}
-              className="w-full sm:w-2/3 bg-[#111215] hover:bg-[#15803D] disabled:opacity-50 text-[#FBF9F5] py-3.5 px-6 text-xs uppercase tracking-wider font-bold transition-all shadow-md cursor-pointer flex items-center justify-center gap-2"
+              className="w-full sm:w-2/3 bg-[#111215] hover:bg-[#15803D] disabled:opacity-50 text-[#FBF9F5] py-4 px-6 font-mono-code text-xs uppercase tracking-wider font-bold transition-all shadow-[4px_4px_0px_#15803D] cursor-pointer flex items-center justify-center gap-2.5"
             >
               {submitting ? (
                 <>
@@ -703,7 +723,7 @@ export default function NewOrderPage() {
             </button>
           </div>
         </div>
-      </Modal>
+      )}
 
     </div>
   );
