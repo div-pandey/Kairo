@@ -16,13 +16,6 @@ export default function LandingPage() {
               
               {/* Left Column: Proposition */}
               <div className="lg:col-span-7 flex flex-col gap-6 sm:gap-9">
-                {/* Eyebrow Stamp */}
-                <div>
-                  <div className="inline-flex items-center gap-2.5 font-mono-code text-[11px] font-semibold tracking-wider text-[#65625D] uppercase px-3.5 py-2 border border-[#CFC7BB] bg-[#F3EFE8]/70 rounded-sm">
-                    <span className="h-1.5 w-1.5 rounded-full bg-[#1D4ED8]" />
-                    KCC Student Printing · Greater Noida
-                  </div>
-                </div>
 
                 {/* Primary Headline */}
                 <h1 className="font-display text-3xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-[#111215] leading-[1.12] sm:leading-[1.1]">
@@ -192,55 +185,63 @@ export default function LandingPage() {
               </p>
             </div>
 
-            {/* Horizontal Sequence — NO giant cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-14 pt-12 border-t border-[#111215]">
+            {/* Horizontal Sequence */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-14 pt-12 border-t border-[#111215]">
               {/* Step 1 */}
-              <div className="flex flex-col gap-4">
-                <span className="font-mono-code text-4xl sm:text-5xl font-extrabold text-[#111215] block">
-                  01
-                </span>
-                <h3 className="font-display text-2xl font-bold text-[#111215] uppercase tracking-wide">
-                  Upload
-                </h3>
+              <div className="flex flex-col gap-3">
+                <div className="flex items-baseline gap-3">
+                  <span className="font-mono-code text-4xl sm:text-5xl font-extrabold text-[#111215] leading-none shrink-0">
+                    01
+                  </span>
+                  <h3 className="font-display text-2xl font-bold text-[#111215] uppercase tracking-wide">
+                    Upload
+                  </h3>
+                </div>
                 <p className="text-sm text-[#65625D] leading-relaxed">
                   Drop your files. PDF, DOCX, PPTX, or photos. Add up to 20 files in one run (up to 100MB per file).
                 </p>
               </div>
 
               {/* Step 2 */}
-              <div className="flex flex-col gap-4">
-                <span className="font-mono-code text-4xl sm:text-5xl font-extrabold text-[#111215] block">
-                  02
-                </span>
-                <h3 className="font-display text-2xl font-bold text-[#111215] uppercase tracking-wide">
-                  Set
-                </h3>
+              <div className="flex flex-col gap-3">
+                <div className="flex items-baseline gap-3">
+                  <span className="font-mono-code text-4xl sm:text-5xl font-extrabold text-[#111215] leading-none shrink-0">
+                    02
+                  </span>
+                  <h3 className="font-display text-2xl font-bold text-[#111215] uppercase tracking-wide">
+                    Set
+                  </h3>
+                </div>
                 <p className="text-sm text-[#65625D] leading-relaxed">
                   Choose B&amp;W or colour. Choose your number of copies. Page counts auto-detect.
                 </p>
               </div>
 
               {/* Step 3 */}
-              <div className="flex flex-col gap-4">
-                <span className="font-mono-code text-4xl sm:text-5xl font-extrabold text-[#111215] block">
-                  03
-                </span>
-                <h3 className="font-display text-2xl font-bold text-[#111215] uppercase tracking-wide">
-                  Confirm
-                </h3>
+              <div className="flex flex-col gap-3">
+                <div className="flex items-baseline gap-3">
+                  <span className="font-mono-code text-4xl sm:text-5xl font-extrabold text-[#111215] leading-none shrink-0">
+                    03
+                  </span>
+                  <h3 className="font-display text-2xl font-bold text-[#111215] uppercase tracking-wide">
+                    Confirm
+                  </h3>
+                </div>
                 <p className="text-sm text-[#65625D] leading-relaxed">
                   Check every page and the exact price before confirming. No surprise charges.
                 </p>
               </div>
 
               {/* Step 4 */}
-              <div className="flex flex-col gap-4">
-                <span className="font-mono-code text-4xl sm:text-5xl font-extrabold text-[#111215] block">
-                  04
-                </span>
-                <h3 className="font-display text-2xl font-bold text-[#111215] uppercase tracking-wide">
-                  Collect
-                </h3>
+              <div className="flex flex-col gap-3">
+                <div className="flex items-baseline gap-3">
+                  <span className="font-mono-code text-4xl sm:text-5xl font-extrabold text-[#111215] leading-none shrink-0">
+                    04
+                  </span>
+                  <h3 className="font-display text-2xl font-bold text-[#111215] uppercase tracking-wide">
+                    Collect
+                  </h3>
+                </div>
                 <p className="text-sm text-[#65625D] leading-relaxed">
                   Pick up your printout at the campus desk when ready. Track live on your phone.
                 </p>
@@ -461,49 +462,56 @@ export default function LandingPage() {
       </main>
 
       {/* ─── FOOTER ────────────────────────────────────────────────────────── */}
-      <footer className="bg-[#FBF9F5] border-t border-[#E5DFD5] py-12 sm:py-20">
-        <div className="max-w-7xl mx-auto px-5 sm:px-10 lg:px-12 flex flex-col gap-10">
-          <div className="flex flex-col md:flex-row items-baseline justify-between gap-8 pb-10 border-b border-[#E5DFD5]">
+      <footer className="bg-[#FBF9F5] border-t border-[#E5DFD5]">
+        <div className="max-w-7xl mx-auto px-5 sm:px-10 lg:px-12">
+
+          {/* Top row: brand + nav links */}
+          <div className="py-12 sm:py-16 flex flex-col md:flex-row md:items-start justify-between gap-10 border-b border-[#E5DFD5]">
+            {/* Brand */}
             <div className="space-y-2">
-              <span className="font-display text-2xl font-black text-[#111215]">
-                kairo
-              </span>
-              <p className="text-xs text-[#65625D] font-mono-code">
+              <span className="font-display text-2xl font-black text-[#111215] block">kairo</span>
+              <p className="text-xs text-[#65625D] font-mono-code max-w-xs leading-relaxed">
                 Student Printing Service for KCC ITM Campus, Greater Noida
               </p>
             </div>
 
-            <div className="flex flex-wrap items-center gap-8 font-mono-code text-xs text-[#65625D]">
-              <a href="#how-it-works" className="hover:text-[#111215] transition-colors">How it works</a>
-              <a href="#pricing" className="hover:text-[#111215] transition-colors">Pricing</a>
-              <a href="#why-kairo" className="hover:text-[#111215] transition-colors">Why Kairo</a>
-              <a href="#faq" className="hover:text-[#111215] transition-colors">FAQ</a>
-              <Link href="/login" className="hover:text-[#111215] transition-colors">Student Login</Link>
-              <Link href="/admin/login" className="hover:text-[#111215] transition-colors">Desk Portal</Link>
-            </div>
-          </div>
-
-          <div className="flex flex-col sm:flex-row items-center justify-between text-xs font-mono-code text-[#98948C] gap-4">
-            <div className="space-y-1 text-center sm:text-left">
-              <p>© {new Date().getFullYear()} Kairo · Operated by <strong className="text-[#111215]">Kairo Print Services</strong></p>
-              <p className="text-[11px] text-[#A8A29E]">
-                MSME: UDYAM-DL-02-0128666 · SEA: 2026091948 · Reg. Office: B-1301, Mayur Vihar Ph-3, New Delhi 110096
-              </p>
-              <p className="text-[11px] text-[#A8A29E]">
-                Contact: <a href="mailto:div.pandey.css@gmail.com" className="underline hover:text-[#111215]">div.pandey.css@gmail.com</a> · +91 7303598548
-              </p>
-            </div>
-            <div className="flex flex-col sm:items-end gap-2 text-center sm:text-right">
-              <p className="text-[#65625D]">All prices in INR (₹) · B&amp;W ₹3 · Colour ₹5</p>
-              <div className="flex flex-wrap items-center justify-center sm:justify-end gap-4">
+            {/* Nav columns */}
+            <div className="flex flex-wrap gap-x-16 gap-y-8 font-mono-code text-xs text-[#65625D]">
+              <div className="flex flex-col gap-3">
+                <span className="text-[10px] uppercase tracking-widest text-[#98948C] font-semibold">Navigate</span>
+                <a href="#how-it-works" className="hover:text-[#111215] transition-colors">How it works</a>
+                <a href="#pricing" className="hover:text-[#111215] transition-colors">Pricing</a>
+                <a href="#why-kairo" className="hover:text-[#111215] transition-colors">Why Kairo</a>
+                <a href="#faq" className="hover:text-[#111215] transition-colors">FAQ</a>
+              </div>
+              <div className="flex flex-col gap-3">
+                <span className="text-[10px] uppercase tracking-widest text-[#98948C] font-semibold">Account</span>
+                <Link href="/login" className="hover:text-[#111215] transition-colors">Student Login</Link>
+                <Link href="/register" className="hover:text-[#111215] transition-colors">Register</Link>
+                <Link href="/admin/login" className="hover:text-[#111215] transition-colors">Desk Portal</Link>
+              </div>
+              <div className="flex flex-col gap-3">
+                <span className="text-[10px] uppercase tracking-widest text-[#98948C] font-semibold">Legal</span>
                 <Link href="/terms" className="hover:text-[#111215] transition-colors">Terms</Link>
-                <span>·</span>
                 <Link href="/privacy" className="hover:text-[#111215] transition-colors">Privacy</Link>
-                <span>·</span>
                 <Link href="/refund" className="hover:text-[#111215] transition-colors">Refund Policy</Link>
               </div>
             </div>
           </div>
+
+          {/* Bottom row: legal info */}
+          <div className="py-8 sm:py-10 flex flex-col sm:flex-row sm:items-end justify-between gap-6 font-mono-code text-[11px] text-[#98948C]">
+            <div className="space-y-1.5">
+              <p>© {new Date().getFullYear()} Kairo · Operated by <strong className="text-[#65625D]">Kairo Print Services</strong></p>
+              <p>MSME: UDYAM-DL-02-0128666 · SEA: 2026091948</p>
+              <p>Reg. Office: B-1301, Mayur Vihar Ph-3, New Delhi 110096</p>
+              <p>
+                Contact: <a href="mailto:div.pandey.css@gmail.com" className="underline hover:text-[#111215] transition-colors">div.pandey.css@gmail.com</a> · +91 7303598548
+              </p>
+            </div>
+            <p className="text-[#65625D]">All prices in INR (₹) · B&amp;W ₹3 · Colour ₹5</p>
+          </div>
+
         </div>
       </footer>
     </div>
