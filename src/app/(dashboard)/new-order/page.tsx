@@ -8,7 +8,7 @@ import { Modal } from '@/components/ui/Modal';
 import {
   Upload, X, FileText, Image, File, AlertCircle,
   CheckCircle2, Loader2, ArrowRight, ArrowLeft,
-  FileSpreadsheet
+  FileSpreadsheet, Printer
 } from 'lucide-react';
 import { formatFileSize, generateLocalId, MAX_FILE_SIZE, formatCurrency, calculateItemTotal } from '@/lib/utils';
 import { MAX_FILES_PER_ORDER, MAX_FILE_SIZE_MB } from '@/lib/constants';
@@ -149,6 +149,7 @@ export default function NewOrderPage() {
   }));
 
   const grandTotal = orderItems.reduce((sum, item) => sum + item.itemTotal, 0);
+  const totalPagesCount = orderItems.reduce((acc, item) => acc + ((item.pageCount || 1) * item.file.copies), 0);
   const allReady = files.length > 0 && files.every((f) => !f.pageCountLoading && (f.pageCount !== undefined || f.pageCountError));
   const hasMissingLayout = files.some((f) => !f.printSide);
 
@@ -558,59 +559,147 @@ export default function NewOrderPage() {
         isOpen={confirmOpen}
         onClose={() => setConfirmOpen(false)}
         title="Verify Print Requisition"
+        category="[ FORM REQ-204 · CAMPUS DESK DISPATCH ]"
+        subtitle="Review document specifications, print layouts, and estimated desk charges before dispatch."
         size="lg"
       >
         <div className="p-4 sm:p-6 space-y-4 sm:space-y-5 font-mono-code text-xs">
-          <div className="p-3 bg-[#F3EFE8] border border-[#CFC7BB] text-[#111215] space-y-1">
-            <p className="font-bold uppercase tracking-wider text-[11px]">Notice:</p>
-            <p className="text-[11px] text-[#65625D]">
-              Orders are dispatched immediately to the physical printing press. Specifications cannot be modified once confirmed.
-            </p>
-          </div>
-
-          {/* Line items list */}
-          <div className="border border-[#E5DFD5] divide-y divide-[#E5DFD5] max-h-60 overflow-y-auto">
-            {orderItems.map(({ file: f, pageCount, pricePerPage, itemTotal }) => (
-              <div key={f.id} className="p-3 sm:p-3.5 flex justify-between items-baseline gap-4">
-                <div className="min-w-0">
-                  <p className="font-bold text-[#111215] truncate">{f.name}</p>
-                  <p className="text-[11px] text-[#65625D] mt-0.5">
-                    {pageCount} pgs × {f.copies} {f.copies === 1 ? 'copy' : 'copies'} · {f.colourMode === 'bw' ? 'B&W' : 'Colour'} · {f.printSide === 'both_sides' ? 'Both sides (Duplex)' : 'Separate pages (1-sided)'} (₹{pricePerPage}/pg)
-                  </p>
-                </div>
-                <span className="font-bold text-[#111215] text-sm shrink-0">
-                  {formatCurrency(itemTotal)}
-                </span>
+          
+          {/* Official Press Advisory Docket */}
+          <div className="border border-[#111215] bg-[#F4F0E8] p-3.5 sm:p-4 relative">
+            <span className="absolute -top-2 left-3 bg-[#111215] text-[#FBF9F5] px-2 py-0.5 text-[9px] uppercase tracking-widest font-bold">
+              PRESS ADVISORY
+            </span>
+            <div className="flex items-start gap-3 pt-0.5">
+              <Printer className="h-4 w-4 text-[#111215] shrink-0 mt-0.5" />
+              <div className="space-y-0.5">
+                <p className="font-bold text-[#111215] uppercase tracking-wider text-[11px]">
+                  Direct Station Routing
+                </p>
+                <p className="text-[#65625D] text-[11px] leading-relaxed">
+                  Upon confirmation, print jobs are routed straight to the high-speed campus press queue. Layout and specifications cannot be edited once confirmed.
+                </p>
               </div>
-            ))}
+            </div>
           </div>
 
-          {/* Grand total */}
-          <div className="flex justify-between items-baseline p-3.5 sm:p-4 border border-[#111215] bg-[#FBF9F5]">
-            <span className="font-bold uppercase tracking-wider text-xs">Total to Pay at Desk</span>
-            <span className="font-display font-black text-xl sm:text-2xl text-[#111215]">{formatCurrency(grandTotal)}</span>
+          {/* Line items list / Requisition Manifest */}
+          <div className="border-2 border-[#111215] bg-white shadow-xs">
+            <div className="bg-[#111215] text-[#FBF9F5] px-4 py-2.5 flex items-center justify-between text-[10px] uppercase font-bold tracking-widest">
+              <span className="flex items-center gap-2">
+                <span>DOCUMENT SPECIFICATIONS</span>
+                <span className="text-[#D5CDBC]">({orderItems.length})</span>
+              </span>
+              <span>ITEM SUBTOTAL</span>
+            </div>
+
+            <div className="divide-y divide-[#E5DFD5] max-h-60 overflow-y-auto">
+              {orderItems.map(({ file: f, pageCount, pricePerPage, itemTotal }) => (
+                <div key={f.id} className="p-3.5 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white hover:bg-[#FBF9F5] transition-colors">
+                  <div className="space-y-1.5 min-w-0">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <FileIcon type={f.type} name={f.name} />
+                      <p className="font-bold text-[#111215] truncate text-xs">
+                        {f.name}
+                      </p>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-1.5 text-[10px]">
+                      {/* Colour Mode Badge */}
+                      <span className={`px-2 py-0.5 font-bold uppercase tracking-wider border ${
+                        f.colourMode === 'colour'
+                          ? 'bg-blue-50 text-[#1D4ED8] border-[#1D4ED8]'
+                          : 'bg-[#111215] text-[#FBF9F5] border-[#111215]'
+                      }`}>
+                        {f.colourMode === 'colour' ? 'Colour' : 'B&W'}
+                      </span>
+
+                      {/* Print Layout Badge */}
+                      <span className="px-2 py-0.5 font-bold uppercase tracking-wider border border-[#CFC7BB] bg-[#FBF9F5] text-[#111215]">
+                        {f.printSide === 'both_sides' ? '2-Sided (Duplex)' : '1-Sided (Separate)'}
+                      </span>
+
+                      {/* Copies & Rate */}
+                      <span className="text-[#65625D]">
+                        {pageCount} pgs × {f.copies} {f.copies === 1 ? 'copy' : 'copies'} · ₹{pricePerPage}/pg
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="text-right shrink-0 pt-1 sm:pt-0 border-t sm:border-t-0 border-[#F0EBE3]">
+                    <span className="font-bold text-[#111215] text-sm sm:text-base">
+                      {formatCurrency(itemTotal)}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Campus Desk Pickup & Payment Details */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">
+            <div className="p-3 bg-[#F3EFE8] border border-[#CFC7BB] space-y-0.5">
+              <span className="text-[9px] uppercase font-bold text-[#65625D] tracking-wider block">Pickup Counter</span>
+              <span className="font-bold text-[#111215]">KCC Campus Print Desk · Ground Floor</span>
+            </div>
+            <div className="p-3 bg-[#F3EFE8] border border-[#CFC7BB] space-y-0.5">
+              <span className="text-[9px] uppercase font-bold text-[#65625D] tracking-wider block">Payment Instructions</span>
+              <span className="font-bold text-[#111215]">UPI QR Code or Cash at Desk</span>
+            </div>
+          </div>
+
+          {/* Grand total banner */}
+          <div className="border-2 border-[#111215] bg-[#111215] text-[#FBF9F5] p-4 sm:p-4.5 flex items-center justify-between">
+            <div className="space-y-0.5">
+              <span className="text-[10px] font-bold uppercase tracking-widest text-[#D5CDBC] block">
+                Total Amount Due at Desk
+              </span>
+              <span className="text-[11px] text-[#98948C]">
+                {totalPagesCount} total page{totalPagesCount === 1 ? '' : 's'} across {orderItems.length} file{orderItems.length === 1 ? '' : 's'}
+              </span>
+            </div>
+            <div className="text-right">
+              <span className="font-display font-black text-2xl sm:text-3xl text-white tracking-tight">
+                {formatCurrency(grandTotal)}
+              </span>
+            </div>
           </div>
 
           {submitError && (
-            <div className="p-3 text-xs text-[#B91C1C] bg-red-50 border border-red-200">
-              {submitError}
+            <div className="p-3 text-xs text-[#B91C1C] bg-red-50 border-2 border-[#B91C1C] flex items-center gap-2">
+              <AlertCircle className="h-4 w-4 shrink-0" />
+              <span>{submitError}</span>
             </div>
           )}
 
-          <div className="flex flex-col sm:flex-row gap-3 pt-2 sm:pt-3">
+          {/* Action buttons */}
+          <div className="flex flex-col-reverse sm:flex-row gap-3 pt-1">
             <button
+              type="button"
               onClick={() => setConfirmOpen(false)}
               disabled={submitting}
-              className="w-full sm:flex-1 border border-[#CFC7BB] hover:border-[#111215] text-[#111215] py-3 text-xs uppercase tracking-wider font-bold"
+              className="w-full sm:w-1/3 border-2 border-[#111215] bg-white hover:bg-[#F3EFE8] text-[#111215] py-3.5 px-4 text-xs uppercase tracking-wider font-bold transition-colors cursor-pointer flex items-center justify-center gap-1.5"
             >
-              Modify Settings
+              <ArrowLeft className="h-3.5 w-3.5" />
+              <span>Modify Settings</span>
             </button>
             <button
+              type="button"
               onClick={handleConfirmOrder}
               disabled={submitting}
-              className="w-full sm:flex-1 bg-[#111215] hover:bg-[#15803D] disabled:opacity-50 text-[#FBF9F5] py-3 text-xs uppercase tracking-wider font-bold flex items-center justify-center gap-2"
+              className="w-full sm:w-2/3 bg-[#111215] hover:bg-[#15803D] disabled:opacity-50 text-[#FBF9F5] py-3.5 px-6 text-xs uppercase tracking-wider font-bold transition-all shadow-md cursor-pointer flex items-center justify-center gap-2"
             >
-              {submitting ? 'Submitting to Press...' : 'Confirm & Dispatch Print'}
+              {submitting ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span>Submitting to Press...</span>
+                </>
+              ) : (
+                <>
+                  <span>Confirm &amp; Dispatch Print</span>
+                  <ArrowRight className="h-4 w-4" />
+                </>
+              )}
             </button>
           </div>
         </div>
