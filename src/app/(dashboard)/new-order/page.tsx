@@ -14,6 +14,8 @@ import { MAX_FILES_PER_ORDER, MAX_FILE_SIZE_MB } from '@/lib/constants';
 import { useRouter } from 'next/navigation';
 import { FileThumbnail } from '@/components/files/FileThumbnail';
 import { saveOrderDraft, loadOrderDraft, clearOrderDraft } from '@/lib/orderDraftStorage';
+import { detectPageCountInBrowser } from '@/lib/pageCounter';
+import { FilePageBadge } from '@/components/files/FilePageBadge';
 
 export default function NewOrderPage() {
   const router = useRouter();
@@ -123,33 +125,43 @@ export default function NewOrderPage() {
   );
 
   async function getPageCount(uploadedFile: UploadedFile) {
-    try {
-      const formData = new FormData();
-      formData.append('file', uploadedFile.file);
-
-      const res = await fetch('/api/files/page-count', {
-        method: 'POST',
-        body: formData,
-      });
-
-      const data = await res.json();
-
+    const applyResult = (pageCount: number | null, source: string, error?: string) => {
       setFiles((prev) =>
         prev.map((f) =>
           f.id === uploadedFile.id
             ? {
                 ...f,
-                pageCount: data.pageCount ?? undefined,
-                totalDocumentPages: data.pageCount ?? undefined,
+                pageCount: pageCount ?? undefined,
+                totalDocumentPages: pageCount ?? undefined,
                 pageRangeMode: 'all',
                 customPageRange: '',
-                pageCountSource: data.source ?? 'estimated',
+                pageCountSource: (source as 'auto' | 'manual' | 'estimated') ?? 'estimated',
                 pageCountLoading: false,
-                pageCountError: data.error ?? undefined,
+                pageCountError: error,
               }
             : f
         )
       );
+    };
+
+    try {
+      // ── Strategy 1: Client-side detection (no network upload needed) ──
+      // Works for PDFs, PPTX, DOCX up to 100 MB directly in the browser.
+      const clientResult = await detectPageCountInBrowser(uploadedFile.file);
+      if (clientResult.pageCount && clientResult.pageCount > 0) {
+        applyResult(clientResult.pageCount, clientResult.source);
+        return;
+      }
+
+      // ── Strategy 2: Server-side fallback (for edge cases client can't handle) ──
+      const formData = new FormData();
+      formData.append('file', uploadedFile.file);
+      const res = await fetch('/api/files/page-count', {
+        method: 'POST',
+        body: formData,
+      });
+      const data = await res.json();
+      applyResult(data.pageCount ?? null, data.source ?? 'estimated', data.error);
     } catch {
       setFiles((prev) =>
         prev.map((f) =>
@@ -441,29 +453,18 @@ export default function NewOrderPage() {
                     </div>
 
                     <div className="flex items-center justify-between sm:justify-end gap-2.5 sm:gap-3.5 shrink-0 font-mono-code text-xs border-t sm:border-t-0 pt-2 sm:pt-0 border-[#F0EBE3]">
-                      {f.pageCountLoading ? (
-                        <span className="inline-flex items-center gap-1.5 text-[#65625D]">
-                          <Loader2 className="h-3.5 w-3.5 animate-spin" /> Counting...
-                        </span>
-                      ) : f.pageCount !== undefined ? (
-                        <span className="kairo-stamp text-[#15803D] border-[#15803D] bg-green-50/40">
-                          {f.pageCount} {f.pageCount === 1 ? 'PAGE' : 'PAGES'}
-                        </span>
-                      ) : (
-                        <div className="flex items-center gap-2">
-                          <input
-                            type="number"
-                            min={1}
-                            placeholder="Pages"
-                            className="w-16 border border-[#CFC7BB] px-2 py-1 text-xs font-mono-code"
-                            onChange={(e) => {
-                              const val = parseInt(e.target.value);
-                              if (val > 0) updateFile(f.id, { pageCount: val, pageCountSource: 'manual' });
-                            }}
-                          />
-                          <span className="text-[10px] text-[#B91C1C]">Enter pages</span>
-                        </div>
-                      )}
+                      <FilePageBadge
+                        pageCount={f.pageCount}
+                        loading={f.pageCountLoading}
+                        onUpdate={(val) =>
+                          updateFile(f.id, {
+                            pageCount: val,
+                            totalDocumentPages: val,
+                            pageCountSource: 'manual',
+                            pageCountError: undefined,
+                          })
+                        }
+                      />
 
                       <button
                         onClick={() => removeFile(f.id)}

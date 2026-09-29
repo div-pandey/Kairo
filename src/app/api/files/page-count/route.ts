@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { PDFDocument } from 'pdf-lib';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
 import { MAX_FILE_SIZE_BYTES, MAX_FILE_SIZE_MB } from '@/lib/constants';
+import { extractPdfPageCountFromBuffer, extractOfficePageCount } from '@/lib/pageCounter';
 
 export const runtime = 'nodejs';
 
@@ -39,31 +40,58 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ pageCount: 1, source: 'auto' });
     }
 
-    // 2. PDF parsing using pdf-lib
-    if (fileType === 'application/pdf' || fileName.endsWith('.pdf')) {
-      try {
-        const buffer = await file.arrayBuffer();
-        const pdfDoc = await PDFDocument.load(buffer, { ignoreEncryption: true });
-        const count = pdfDoc.getPageCount();
+    // Read buffer for document inspection
+    const buffer = await file.arrayBuffer();
 
-        // Enforce safety limit
-        const safeCount = Math.min(Math.max(1, count), 2000);
+    // 2. PDF parsing using pdf-lib with binary fallback
+    if (fileType === 'application/pdf' || fileName.endsWith('.pdf')) {
+      // Try pdf-lib first
+      try {
+        const pdfDoc = await PDFDocument.load(buffer, { ignoreEncryption: true, updateMetadata: false });
+        const count = pdfDoc.getPageCount();
+        const safeCount = Math.min(Math.max(1, count), 2500);
 
         return NextResponse.json({
           pageCount: safeCount,
           source: 'auto',
         });
       } catch (pdfErr) {
-        console.warn('PDF parsing notice:', pdfErr);
+        console.warn('pdf-lib failed, trying binary stream scanner fallback:', pdfErr);
+      }
+
+      // Fallback: Binary page tree scanner (works even on malformed/scanned PDFs)
+      const binaryCount = extractPdfPageCountFromBuffer(buffer);
+      if (binaryCount && binaryCount > 0) {
         return NextResponse.json({
-          pageCount: null,
-          error: 'Could not read PDF structure automatically. Please enter page count manually.',
-          source: 'manual',
+          pageCount: binaryCount,
+          source: 'auto',
+        });
+      }
+
+      return NextResponse.json({
+        pageCount: null,
+        error: 'Could not read PDF structure automatically. Please enter page count manually.',
+        source: 'manual',
+      });
+    }
+
+    // 3. PPTX / PPT / DOCX / DOC inspection
+    if (
+      fileName.endsWith('.pptx') ||
+      fileName.endsWith('.ppt') ||
+      fileName.endsWith('.docx') ||
+      fileName.endsWith('.doc')
+    ) {
+      const officeCount = extractOfficePageCount(buffer, fileName);
+      if (officeCount && officeCount > 0) {
+        return NextResponse.json({
+          pageCount: officeCount,
+          source: 'auto',
         });
       }
     }
 
-    // 3. For office documents, prompt manual page count entry
+    // 4. Default prompt if auto-detection could not determine count
     return NextResponse.json({
       pageCount: null,
       error: 'Please enter total pages for this document.',
