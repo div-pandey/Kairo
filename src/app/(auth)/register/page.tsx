@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Eye, EyeOff, Upload, ArrowRight, Check, X, CreditCard, AlertCircle } from 'lucide-react';
+import { Eye, EyeOff, Upload, ArrowRight, Check, X, CreditCard, AlertCircle, ShieldCheck } from 'lucide-react';
 import { COLLEGE_YEARS, KCC_PROGRAMMES } from '@/lib/constants';
 
 const SECTION_SUBS: Record<string, string[]> = {
@@ -18,8 +18,13 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [showPass, setShowPass] = useState(false);
+  const [showConfirmPass, setShowConfirmPass] = useState(false);
   const [idCardFile, setIdCardFile] = useState<File | null>(null);
   const [showSampleCard, setShowSampleCard] = useState(false);
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [emailError, setEmailError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  const [confirmError, setConfirmError] = useState('');
 
   const [form, setForm] = useState({
     fullName: '',
@@ -33,6 +38,40 @@ export default function RegisterPage() {
     email: '',
     password: '',
   });
+
+  // Password strength 0-4
+  function getPasswordStrength(p: string): number {
+    if (p.length === 0) return 0;
+    let score = 0;
+    if (p.length >= 8) score++;
+    if (p.length >= 12) score++;
+    if (/[A-Z]/.test(p) && /[a-z]/.test(p)) score++;
+    if (/\d/.test(p)) score++;
+    if (/[^A-Za-z0-9]/.test(p)) score++;
+    return Math.min(score, 4);
+  }
+
+  const strengthLabels = ['', 'Weak', 'Fair', 'Good', 'Strong'];
+  const strengthColors = ['', '#DC2626', '#D97706', '#2563EB', '#15803D'];
+  const pwStrength = getPasswordStrength(form.password);
+
+  function validateEmail(val: string): boolean {
+    const trimmed = val.trim().toLowerCase();
+    if (!trimmed) { setEmailError('Email address is required.'); return false; }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) { setEmailError('Please enter a valid email address.'); return false; }
+    setEmailError(''); return true;
+  }
+
+  function validatePassword(val: string): boolean {
+    if (val.length < 8) { setPasswordError('Password must be at least 8 characters.'); return false; }
+    if (val.length > 72) { setPasswordError('Password cannot exceed 72 characters.'); return false; }
+    setPasswordError(''); return true;
+  }
+
+  function validateConfirm(val: string): boolean {
+    if (val !== form.password) { setConfirmError('Passwords do not match.'); return false; }
+    setConfirmError(''); return true;
+  }
 
   const [mobileError, setMobileError] = useState('');
   const [rollError, setRollError] = useState('');
@@ -447,6 +486,153 @@ export default function RegisterPage() {
                   </p>
                 </div>
 
+                {/* ── ACCOUNT CREDENTIALS ── */}
+                <div className="pt-2 border-t border-[#E5DFD5]">
+                  <p className="font-mono-code text-[11px] font-semibold text-[#65625D] uppercase tracking-widest mb-4 flex items-center gap-2">
+                    <ShieldCheck className="h-3.5 w-3.5" />
+                    Account Credentials
+                  </p>
+
+                  {/* Email */}
+                  <div className="mb-4">
+                    <label
+                      htmlFor="register-email"
+                      className="block font-mono-code text-xs font-semibold text-[#111215] uppercase tracking-wider mb-1.5"
+                    >
+                      Email Address <span className="text-[#DC2626]">*</span>
+                    </label>
+                    <input
+                      id="register-email"
+                      type="email"
+                      required
+                      value={form.email}
+                      onChange={(e) => {
+                        update('email', e.target.value);
+                        if (emailError) validateEmail(e.target.value);
+                      }}
+                      onBlur={() => validateEmail(form.email)}
+                      placeholder="rahul.kcc@gmail.com"
+                      className={`w-full bg-[#FBF9F5] border ${
+                        emailError ? 'border-[#DC2626]' : 'border-[#CFC7BB] focus:border-[#111215]'
+                      } focus:bg-white text-sm text-[#111215] px-3.5 py-2.5 rounded-none outline-none transition-colors font-mono-code placeholder:text-[#98948C]`}
+                    />
+                    {emailError && (
+                      <p className="mt-1.5 font-mono-code text-xs text-[#DC2626] flex items-center gap-1.5">
+                        <AlertCircle className="h-3.5 w-3.5 shrink-0" />{emailError}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Password */}
+                  <div className="mb-4">
+                    <label
+                      htmlFor="register-password"
+                      className="block font-mono-code text-xs font-semibold text-[#111215] uppercase tracking-wider mb-1.5"
+                    >
+                      Choose a Password <span className="text-[#DC2626]">*</span>
+                    </label>
+                    <div className="relative">
+                      <input
+                        id="register-password"
+                        type={showPass ? 'text' : 'password'}
+                        required
+                        minLength={8}
+                        value={form.password}
+                        onChange={(e) => {
+                          update('password', e.target.value);
+                          if (passwordError) validatePassword(e.target.value);
+                          if (confirmError && confirmPassword) validateConfirm(confirmPassword);
+                        }}
+                        onBlur={() => validatePassword(form.password)}
+                        placeholder="Minimum 8 characters"
+                        className={`w-full bg-[#FBF9F5] border ${
+                          passwordError ? 'border-[#DC2626]' : 'border-[#CFC7BB] focus:border-[#111215]'
+                        } focus:bg-white text-sm text-[#111215] px-3.5 py-2.5 pr-10 rounded-none outline-none transition-colors font-mono-code placeholder:text-[#98948C]`}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPass(!showPass)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-[#65625D] hover:text-[#111215] cursor-pointer"
+                        aria-label={showPass ? 'Hide password' : 'Show password'}
+                      >
+                        {showPass ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                    </div>
+                    {/* Strength bar */}
+                    {form.password.length > 0 && (
+                      <div className="mt-2">
+                        <div className="flex gap-1 mb-1">
+                          {[1, 2, 3, 4].map((lvl) => (
+                            <div
+                              key={lvl}
+                              className="h-1 flex-1 rounded-full transition-all duration-300"
+                              style={{
+                                backgroundColor: pwStrength >= lvl ? strengthColors[pwStrength] : '#E5DFD5',
+                              }}
+                            />
+                          ))}
+                        </div>
+                        <p className="font-mono-code text-[11px]" style={{ color: strengthColors[pwStrength] }}>
+                          {strengthLabels[pwStrength]} password
+                        </p>
+                      </div>
+                    )}
+                    {passwordError && (
+                      <p className="mt-1.5 font-mono-code text-xs text-[#DC2626] flex items-center gap-1.5">
+                        <AlertCircle className="h-3.5 w-3.5 shrink-0" />{passwordError}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Confirm Password */}
+                  <div>
+                    <label
+                      htmlFor="register-confirm-password"
+                      className="block font-mono-code text-xs font-semibold text-[#111215] uppercase tracking-wider mb-1.5"
+                    >
+                      Confirm Password <span className="text-[#DC2626]">*</span>
+                    </label>
+                    <div className="relative">
+                      <input
+                        id="register-confirm-password"
+                        type={showConfirmPass ? 'text' : 'password'}
+                        required
+                        value={confirmPassword}
+                        onChange={(e) => {
+                          setConfirmPassword(e.target.value);
+                          if (confirmError) validateConfirm(e.target.value);
+                        }}
+                        onBlur={() => validateConfirm(confirmPassword)}
+                        placeholder="Re-enter your password"
+                        className={`w-full bg-[#FBF9F5] border ${
+                          confirmError
+                            ? 'border-[#DC2626]'
+                            : confirmPassword && confirmPassword === form.password
+                            ? 'border-[#15803D]'
+                            : 'border-[#CFC7BB] focus:border-[#111215]'
+                        } focus:bg-white text-sm text-[#111215] px-3.5 py-2.5 pr-10 rounded-none outline-none transition-colors font-mono-code placeholder:text-[#98948C]`}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirmPass(!showConfirmPass)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-[#65625D] hover:text-[#111215] cursor-pointer"
+                        aria-label={showConfirmPass ? 'Hide password' : 'Show password'}
+                      >
+                        {showConfirmPass ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                    </div>
+                    {confirmError ? (
+                      <p className="mt-1.5 font-mono-code text-xs text-[#DC2626] flex items-center gap-1.5">
+                        <AlertCircle className="h-3.5 w-3.5 shrink-0" />{confirmError}
+                      </p>
+                    ) : confirmPassword && confirmPassword === form.password ? (
+                      <p className="mt-1.5 font-mono-code text-xs text-[#15803D] flex items-center gap-1.5">
+                        <Check className="h-3.5 w-3.5 shrink-0" />Passwords match
+                      </p>
+                    ) : null}
+                  </div>
+                </div>
+
                 {error && (
                   <div className="p-3 text-xs font-mono-code text-[#B91C1C] bg-red-50 border border-red-200">
                     {error}
@@ -458,13 +644,16 @@ export default function RegisterPage() {
                   onClick={() => {
                     const isMobileValid = validateMobile(form.mobileNumber);
                     const isRollValid = validateRoll(form.kccId);
+                    const isEmailValid = validateEmail(form.email);
+                    const isPasswordValid = validatePassword(form.password);
+                    const isConfirmValid = validateConfirm(confirmPassword);
 
                     if (!form.fullName || !form.mobileNumber || !form.kccId || !form.year || !form.section || !form.subSection || !form.className || !form.classroomNumber) {
-                      setError('Please complete all fields including mobile number, sub-section, and classroom number.');
+                      setError('Please complete all required fields including mobile number, sub-section, and classroom number.');
                       return;
                     }
 
-                    if (!isMobileValid || !isRollValid) {
+                    if (!isMobileValid || !isRollValid || !isEmailValid || !isPasswordValid || !isConfirmValid) {
                       setError('Please correct the highlighted errors before proceeding.');
                       return;
                     }
@@ -482,41 +671,12 @@ export default function RegisterPage() {
 
             {step === 2 && (
               <>
-                <div>
-                  <label className="block font-mono-code text-xs font-semibold text-[#111215] uppercase tracking-wider mb-1.5">
-                    Email Address
-                  </label>
-                  <input
-                    type="email"
-                    required
-                    value={form.email}
-                    onChange={(e) => update('email', e.target.value)}
-                    placeholder="rahul.kcc@gmail.com"
-                    className="w-full bg-[#FBF9F5] border border-[#CFC7BB] focus:border-[#111215] focus:bg-white text-sm text-[#111215] px-3.5 py-2.5 rounded-none outline-none transition-colors font-mono-code placeholder:text-[#98948C]"
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-mono-code text-xs font-semibold text-[#111215] uppercase tracking-wider mb-1.5">
-                    Choose a Password
-                  </label>
-                  <div className="relative">
-                    <input
-                      type={showPass ? 'text' : 'password'}
-                      required
-                      minLength={8}
-                      value={form.password}
-                      onChange={(e) => update('password', e.target.value)}
-                      placeholder="Minimum 8 characters"
-                      className="w-full bg-[#FBF9F5] border border-[#CFC7BB] focus:border-[#111215] focus:bg-white text-sm text-[#111215] px-3.5 py-2.5 pr-10 rounded-none outline-none transition-colors font-mono-code placeholder:text-[#98948C]"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPass(!showPass)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-[#65625D] hover:text-[#111215]"
-                    >
-                      {showPass ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                    </button>
+                {/* Credential summary (read-only, reassuring) */}
+                <div className="bg-[#F3EFE8] border border-[#E5DFD5] px-4 py-3 flex items-center gap-3">
+                  <ShieldCheck className="h-4 w-4 text-[#15803D] shrink-0" />
+                  <div>
+                    <p className="font-mono-code text-xs font-bold text-[#111215]">{form.email}</p>
+                    <p className="font-mono-code text-[11px] text-[#65625D]">Account email confirmed — password set</p>
                   </div>
                 </div>
 
