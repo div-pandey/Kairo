@@ -13,6 +13,7 @@ import { formatFileSize, generateLocalId, MAX_FILE_SIZE, formatCurrency, calcula
 import { MAX_FILES_PER_ORDER, MAX_FILE_SIZE_MB } from '@/lib/constants';
 import { useRouter } from 'next/navigation';
 import { FileThumbnail } from '@/components/files/FileThumbnail';
+import { saveOrderDraft, loadOrderDraft, clearOrderDraft } from '@/lib/orderDraftStorage';
 
 export default function NewOrderPage() {
   const router = useRouter();
@@ -23,6 +24,51 @@ export default function NewOrderPage() {
   const [submitError, setSubmitError] = useState('');
   const [globalError, setGlobalError] = useState('');
   const [notes, setNotes] = useState('');
+  const [draftLoaded, setDraftLoaded] = useState(false);
+  const [showRestoredNotice, setShowRestoredNotice] = useState(false);
+
+  // ── Restore cached draft from IndexedDB on mount ──
+  useEffect(() => {
+    loadOrderDraft()
+      .then((draft) => {
+        if (draft && draft.files.length > 0) {
+          setFiles(draft.files);
+          setStep(draft.step || 'upload');
+          setNotes(draft.notes || '');
+          setShowRestoredNotice(true);
+        }
+      })
+      .catch((err) => console.warn('[Kairo Cache] Draft restore error:', err))
+      .finally(() => setDraftLoaded(true));
+  }, []);
+
+  // ── Auto-save order state to browser cache in real time ──
+  useEffect(() => {
+    if (!draftLoaded) return;
+    const timer = setTimeout(() => {
+      saveOrderDraft(files, step, notes);
+    }, 250);
+    return () => clearTimeout(timer);
+  }, [files, step, notes, draftLoaded]);
+
+  // ── Prevent accidental page reloads while files are attached ──
+  useEffect(() => {
+    if (files.length === 0) return;
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = '';
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [files.length]);
+
+  const handleDiscardDraft = async () => {
+    await clearOrderDraft();
+    setFiles([]);
+    setStep('upload');
+    setNotes('');
+    setShowRestoredNotice(false);
+  };
 
   // ── Fetch live pricing ──
   useEffect(() => {
@@ -225,6 +271,10 @@ export default function NewOrderPage() {
     }
 
     const orderId = orderResult.orderId;
+    // Order successfully created in database — clear cached draft
+    try {
+      await clearOrderDraft();
+    } catch {}
 
     // Initiate payment — redirects to PhonePe (UPI on mobile, QR on web)
     try {
@@ -269,6 +319,38 @@ export default function NewOrderPage() {
           B&amp;W: ₹{pricing.bw}/pg · Colour: ₹{pricing.colour}/pg · Live verification
         </p>
       </div>
+
+      {/* Restored Draft Notice Banner */}
+      {showRestoredNotice && files.length > 0 && (
+        <div className="bg-[#F3EFE8] border border-[#15803D]/40 p-3.5 flex items-center justify-between gap-3 text-xs font-mono-code animate-fade-in">
+          <div className="flex items-center gap-2.5 text-[#15803D] min-w-0">
+            <CheckCircle2 className="h-4 w-4 shrink-0" />
+            <span className="font-bold text-[#111215] truncate">
+              Restored active requisition ({files.length} document{files.length === 1 ? '' : 's'})
+            </span>
+            <span className="text-[#65625D] hidden md:inline">
+              · Cached in real time in your browser
+            </span>
+          </div>
+          <div className="flex items-center gap-3 shrink-0">
+            <button
+              type="button"
+              onClick={handleDiscardDraft}
+              className="text-[#B91C1C] hover:underline font-bold text-[11px] cursor-pointer"
+            >
+              Discard Draft
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowRestoredNotice(false)}
+              className="text-[#65625D] hover:text-[#111215] p-1 cursor-pointer"
+              aria-label="Dismiss banner"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Step Sequence Tabs */}
       <div className="flex border-b border-[#111215] font-mono-code text-xs font-bold uppercase tracking-wider">
