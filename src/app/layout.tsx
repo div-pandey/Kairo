@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import { NavigationProgress } from '@/components/ui/NavigationProgress';
 
 export const metadata: Metadata = {
   title: 'Kairo — KCC Student Printing Service',
@@ -25,6 +26,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="antialiased">
+        <NavigationProgress />
         {children}
       </body>
     </html>
