@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
@@ -13,6 +13,18 @@ export default function LoginPage() {
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  // Auto-detect recovery tokens if redirected with hash fragments (#access_token=...&type=recovery)
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.location.hash) {
+      const hash = window.location.hash.substring(1);
+      const params = new URLSearchParams(hash);
+      const type = params.get('type');
+      if (type === 'recovery') {
+        router.replace(`/reset-password${window.location.hash}`);
+      }
+    }
+  }, [router]);
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
@@ -31,14 +43,21 @@ export default function LoginPage() {
       return;
     }
 
-    // Check if admin
-    const { data: adminUser } = await supabase
-      .from('admin_users')
-      .select('id')
-      .eq('email', email.trim().toLowerCase())
-      .maybeSingle();
+    // Get the authenticated user's UUID to check admin status
+    const { data: { user: signedInUser } } = await supabase.auth.getUser();
 
-    if (adminUser) {
+    // Check if admin by UUID (admin_users table is keyed by id, not email)
+    let isAdmin = false;
+    if (signedInUser?.id) {
+      const { data: adminRecord } = await supabase
+        .from('admin_users')
+        .select('id')
+        .eq('id', signedInUser.id)
+        .maybeSingle();
+      isAdmin = !!adminRecord;
+    }
+
+    if (isAdmin) {
       router.push('/admin');
     } else {
       router.push('/dashboard');

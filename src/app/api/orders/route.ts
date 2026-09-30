@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { PRICING, MAX_FILES_PER_ORDER, MAX_COPIES, MAX_FILE_SIZE_BYTES } from '@/lib/constants';
+import { PRICING, MAX_FILES_PER_ORDER, MAX_COPIES, MAX_PAGES, MAX_FILE_SIZE_BYTES } from '@/lib/constants';
 import { sendAdminOrderNotification, sendStudentOrderConfirmation } from '@/lib/email';
 import { sanitizeText, sanitizeFileName, clampInt } from '@/lib/sanitize';
 import { checkRateLimit } from '@/lib/rate-limit';
@@ -74,7 +74,13 @@ export async function POST(req: NextRequest) {
     const sanitizedItems = [];
 
     for (const item of items) {
-      const pageCount = clampInt(item.pageCount, 1, 2000, 1);
+      if (!item.pageCount || typeof item.pageCount !== 'number' || item.pageCount < 1) {
+        return NextResponse.json(
+          { error: `File "${item.fileName || 'Document'}" does not have a valid page count. Please enter or confirm the pages before proceeding.` },
+          { status: 400 }
+        );
+      }
+      const pageCount = clampInt(item.pageCount, 1, MAX_PAGES, 1);
       const copies = clampInt(item.copies, 1, MAX_COPIES, 1);
       const isColour = item.colourMode === 'colour';
       const pricePerPage = isColour ? colourPrice : bwPrice;

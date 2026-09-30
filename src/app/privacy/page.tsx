@@ -18,9 +18,14 @@ export default function PrivacyPage() {
           </span>
           <span className="font-mono-code text-[11px] text-[#65625D]">/ KCC</span>
         </Link>
-        <Link href="/" className="font-mono-code text-xs text-[#65625D] hover:text-[#111215] transition-colors">
-          ← Back to home
-        </Link>
+        <div className="flex items-center gap-4 font-mono-code text-xs">
+          <Link href="/dashboard" className="text-[#65625D] hover:text-[#111215] transition-colors">
+            Dashboard
+          </Link>
+          <Link href="/" className="text-[#65625D] hover:text-[#111215] transition-colors">
+            ← Home
+          </Link>
+        </div>
       </header>
 
       <main className="max-w-3xl mx-auto px-5 sm:px-10 py-14 sm:py-20">

@@ -53,12 +53,12 @@ export function sanitizeIdentifier(val: unknown, maxLength: number = 50): string
  */
 export function sanitizeFileName(name: unknown, maxLength: number = 255): string {
   if (typeof name !== 'string') return 'document';
-  // Strip path traversal indicators and directory separators
+  // Strip path traversal indicators, directory separators and dangerous OS characters
   const base = name
     .replace(/\0/g, '')
     .replace(/(\.\.(\/|\\))+/g, '')
     .replace(/[/\\]/g, '_')
-    .replace(/[^a-zA-Z0-9._\- ]/g, '')
+    .replace(/[\x00-\x1f\x7f-\x9f<>:"|?*]/g, '')
     .trim();
   return (base || 'document').slice(0, maxLength);
 }

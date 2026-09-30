@@ -7,6 +7,11 @@ import { Order } from '@/types';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import { FileText, ArrowRight, Plus } from 'lucide-react';
 
+export const metadata = {
+  title: 'My Print Orders — Kairo',
+  description: 'View and track all your campus print orders and receipts.',
+};
+
 export default function OrdersPage() {
   return (
     <Suspense fallback={<OrdersLoading />}>

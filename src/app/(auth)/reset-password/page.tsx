@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
@@ -14,6 +14,57 @@ export default function ResetPasswordPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+  const [verifyingSession, setVerifyingSession] = useState(true);
+
+  useEffect(() => {
+    const supabase = createClient();
+
+    // 1. Extract tokens from URL hash fragment if present (#access_token=...&refresh_token=...)
+    if (typeof window !== 'undefined' && window.location.hash) {
+      const hash = window.location.hash.substring(1);
+      const params = new URLSearchParams(hash);
+      const accessToken = params.get('access_token');
+      const refreshToken = params.get('refresh_token');
+
+      if (accessToken && refreshToken) {
+        supabase.auth
+          .setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken,
+          })
+          .then(({ error: sessionError }) => {
+            if (sessionError) {
+              console.error('[ResetPassword] setSession error:', sessionError);
+              setError('Password reset link is invalid or has expired. Please request a new link.');
+            }
+            setVerifyingSession(false);
+          })
+          .catch((err) => {
+            console.error('[ResetPassword] session exception:', err);
+            setError('Could not verify recovery link.');
+            setVerifyingSession(false);
+          });
+        return;
+      }
+    }
+
+    // 2. Check if user already has an active recovery session in cookies/storage
+    supabase.auth.getSession().then(({ data }) => {
+      if (data.session) {
+        setVerifyingSession(false);
+      } else {
+        // Grace period for Supabase SSR cookie hydration
+        setTimeout(() => {
+          supabase.auth.getSession().then(({ data: retryData }) => {
+            if (!retryData.session) {
+              setError('No active reset session found. Please request a new recovery link.');
+            }
+            setVerifyingSession(false);
+          });
+        }, 600);
+      }
+    });
+  }, []);
 
   async function handleResetSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -71,7 +122,14 @@ export default function ResetPasswordPage() {
           </p>
         </div>
 
-        {success ? (
+        {verifyingSession ? (
+          <div className="py-8 flex flex-col items-center justify-center gap-3 text-center">
+            <Loader2 className="h-6 w-6 animate-spin text-[#111215]" />
+            <p className="font-mono-code text-xs text-[#65625D]">
+              Verifying recovery session...
+            </p>
+          </div>
+        ) : success ? (
           <div className="space-y-5">
             <div className="p-4 bg-green-50 border border-green-200 text-green-800 space-y-1">
               <div className="flex items-center gap-2 font-bold text-sm">

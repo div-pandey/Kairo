@@ -41,6 +41,16 @@ export function checkRateLimit(
   limit: number,
   windowMs: number
 ): RateLimitResult {
+  // Never lock out developers in local development mode
+  if (process.env.NODE_ENV === 'development') {
+    return {
+      allowed: true,
+      limit: 999,
+      remaining: 999,
+      retryAfterSeconds: 0,
+    };
+  }
+
   const now = Date.now();
   const windowStart = now - windowMs;
 

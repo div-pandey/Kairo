@@ -102,6 +102,15 @@ export default function NewOrderPage() {
         accepted = accepted.slice(0, remaining);
       }
 
+      // Check for duplicate file names
+      const existingNames = new Set(files.map((f) => f.name.toLowerCase()));
+      const duplicateNames = accepted
+        .filter((f) => existingNames.has(f.name.toLowerCase()))
+        .map((f) => f.name);
+      if (duplicateNames.length > 0) {
+        setGlobalError(`Notice: Duplicate file detected: "${Array.from(new Set(duplicateNames)).join(', ')}". Each document will be queued as an individual item.`);
+      }
+
       const newFiles: UploadedFile[] = accepted.map((f) => ({
         id: generateLocalId(),
         file: f,
@@ -203,8 +212,9 @@ export default function NewOrderPage() {
 
   const grandTotal = orderItems.reduce((sum, item) => sum + item.itemTotal, 0);
   const totalPagesCount = orderItems.reduce((acc, item) => acc + ((item.pageCount || 1) * item.file.copies), 0);
-  const allReady = files.length > 0 && files.every((f) => !f.pageCountLoading && (f.pageCount !== undefined || f.pageCountError));
+  const allReady = files.length > 0 && files.every((f) => !f.pageCountLoading && f.pageCount && f.pageCount > 0);
   const hasMissingLayout = files.some((f) => !f.printSide);
+  const hasMissingPageCount = files.some((f) => !f.pageCount || f.pageCount <= 0 || f.pageCountLoading);
 
   // ── Upload to Supabase ──
   async function uploadFiles(): Promise<UploadedFile[] | null> {
@@ -239,6 +249,10 @@ export default function NewOrderPage() {
   async function handleConfirmOrder() {
     if (files.some((f) => !f.printSide)) {
       setSubmitError('Please choose a print layout for all documents before dispatching.');
+      return;
+    }
+    if (files.some((f) => !f.pageCount || f.pageCount <= 0)) {
+      setSubmitError('All documents must have a verified page count. Please enter pages for all files before continuing.');
       return;
     }
 
@@ -478,11 +492,16 @@ export default function NewOrderPage() {
                 ))}
               </div>
 
-              <div className="pt-4 flex justify-end">
+              <div className="pt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <p className="font-mono-code text-[11px] text-[#65625D]">
+                  {files.some((f) => !f.pageCount || f.pageCount <= 0)
+                    ? '⚠️ Please enter the page count for documents with manual entry needed before continuing.'
+                    : `${files.length} document${files.length === 1 ? '' : 's'} ready for print settings.`}
+                </p>
                 <button
-                  disabled={!allReady || files.some((f) => f.pageCount === undefined && !f.pageCountError)}
+                  disabled={!allReady}
                   onClick={() => setStep('configure')}
-                  className="inline-flex items-center gap-2 bg-[#111215] hover:bg-[#1D4ED8] disabled:opacity-50 text-[#FBF9F5] font-mono-code text-xs uppercase tracking-wider font-bold py-3.5 px-6 rounded-none transition-colors shadow-sm cursor-pointer"
+                  className="inline-flex items-center justify-center gap-2 bg-[#111215] hover:bg-[#1D4ED8] disabled:opacity-50 text-[#FBF9F5] font-mono-code text-xs uppercase tracking-wider font-bold py-3.5 px-6 rounded-none transition-colors shadow-sm cursor-pointer"
                 >
                   Configure Print Settings
                   <ArrowRight className="h-4 w-4" />
@@ -752,6 +771,12 @@ export default function NewOrderPage() {
                 <span>Print layout is compulsory for all documents. Please select a layout for each file to continue.</span>
               </div>
             )}
+            {hasMissingPageCount && (
+              <div className="p-3 bg-amber-50 border border-amber-200 text-[#B45309] font-mono-code text-xs flex items-center gap-2">
+                <AlertCircle className="h-4 w-4 shrink-0" />
+                <span>Page count is required for all documents. Please return to step 1 and enter the page count for all files.</span>
+              </div>
+            )}
             <div className="flex flex-col-reverse sm:flex-row justify-between items-stretch sm:items-center gap-3">
               <button
                 onClick={() => setStep('upload')}
@@ -760,10 +785,14 @@ export default function NewOrderPage() {
                 <ArrowLeft className="h-3.5 w-3.5" /> Back to Files
               </button>
               <button
-                disabled={hasMissingLayout}
+                disabled={hasMissingLayout || hasMissingPageCount}
                 onClick={() => {
                   if (hasMissingLayout) {
                     setSubmitError('Please choose a print layout for all documents.');
+                    return;
+                  }
+                  if (hasMissingPageCount) {
+                    setSubmitError('Please confirm page count for all documents.');
                     return;
                   }
                   setStep('confirm');
@@ -777,7 +806,7 @@ export default function NewOrderPage() {
           </div>
 
           {/* Mobile Sticky Summary Bar */}
-          <div className="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#111215] text-[#FBF9F5] border-t border-[#26282E] px-4 py-3 shadow-[0_-8px_24px_rgba(0,0,0,0.35)] flex items-center justify-between font-mono-code">
+          <div className="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#111215] text-[#FBF9F5] border-t border-[#26282E] px-4 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))] shadow-[0_-8px_24px_rgba(0,0,0,0.35)] flex items-center justify-between font-mono-code">
             <div className="space-y-0.5 min-w-0 pr-2">
               <div className="flex items-baseline gap-2">
                 <span className="font-display font-black text-lg text-white">
@@ -794,10 +823,14 @@ export default function NewOrderPage() {
 
             <button
               type="button"
-              disabled={hasMissingLayout || files.some((f) => f.pageCountError)}
+              disabled={hasMissingLayout || hasMissingPageCount}
               onClick={() => {
                 if (hasMissingLayout) {
                   setSubmitError('Please choose a print layout for all documents.');
+                  return;
+                }
+                if (hasMissingPageCount) {
+                  setSubmitError('Please confirm page count for all documents.');
                   return;
                 }
                 setStep('confirm');
@@ -912,7 +945,7 @@ export default function NewOrderPage() {
           )}
 
           {/* Navigation Actions */}
-          <div className="flex flex-col-reverse sm:flex-row justify-between items-stretch sm:items-center gap-3 pt-2">
+          <div className="flex flex-col-reverse sm:flex-row justify-between items-stretch sm:items-center gap-3 pt-2 pb-6 sm:pb-2 pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))]">
             <button
               type="button"
               onClick={() => setStep('configure')}

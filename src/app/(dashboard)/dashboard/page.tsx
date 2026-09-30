@@ -9,6 +9,7 @@ import {
   ArrowRight, FileText, Printer, Clock, TrendingUp,
   CheckCircle, AlertCircle, Zap, BookOpen, Info,
 } from 'lucide-react';
+import { PRICING } from '@/lib/constants';
 
 export const metadata = { title: 'Dashboard — Kairo' };
 
@@ -38,12 +39,20 @@ async function DashboardContent() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
+  // Fetch profile
   const { data: profile } = await supabase
     .from('profiles')
     .select('full_name, kcc_id, class_name, year, section')
     .eq('id', user!.id)
     .single();
 
+  // Fetch all orders for accurate stats
+  const { data: allUserOrders } = await supabase
+    .from('orders')
+    .select('status, total_amount')
+    .eq('student_id', user!.id);
+
+  // Fetch recent orders for display
   const { data: orders } = await supabase
     .from('orders')
     .select('*, order_items(*)')
@@ -51,16 +60,27 @@ async function DashboardContent() {
     .order('created_at', { ascending: false })
     .limit(5);
 
-  // Compute stats
-  const allOrders = orders ?? [];
-  const totalOrders      = allOrders.length;
-  const inProgressOrders = allOrders.filter(o => ['pending','accepted','printing','ready'].includes(o.status)).length;
-  const completedOrders  = allOrders.filter(o => o.status === 'completed').length;
-  const cancelledOrders  = allOrders.filter(o => o.status === 'cancelled').length;
-  const totalSpent       = allOrders.filter(o => o.status === 'completed').reduce((s, o) => s + (o.total_amount ?? 0), 0);
+  // Fetch current live pricing
+  const { data: pricingData } = await supabase
+    .from('pricing_config')
+    .select('bw_price_per_page, colour_price_per_page')
+    .order('id', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const bwPrice = pricingData?.bw_price_per_page != null ? Number(pricingData.bw_price_per_page) : PRICING.bw;
+  const colourPrice = pricingData?.colour_price_per_page != null ? Number(pricingData.colour_price_per_page) : PRICING.colour;
+
+  // Compute accurate stats across all orders
+  const statsOrders = allUserOrders ?? [];
+  const totalOrders      = statsOrders.length;
+  const inProgressOrders = statsOrders.filter(o => ['pending','accepted','printing','ready'].includes(o.status)).length;
+  const completedOrders  = statsOrders.filter(o => o.status === 'completed').length;
+  const cancelledOrders  = statsOrders.filter(o => o.status === 'cancelled').length;
+  const totalSpent       = statsOrders.filter(o => o.status === 'completed').reduce((s, o) => s + (o.total_amount ?? 0), 0);
 
   // Most recent order for status spotlight
-  const latestOrder = allOrders[0] ?? null;
+  const latestOrder = orders?.[0] ?? null;
 
   const greetingHour = new Date().getHours();
   const greeting = greetingHour < 12 ? 'Good morning' : greetingHour < 17 ? 'Good afternoon' : 'Good evening';
@@ -114,7 +134,7 @@ async function DashboardContent() {
               </Link>
             </div>
 
-            {allOrders.length === 0 ? (
+            {(!orders || orders.length === 0) ? (
               <div className="bg-white border border-[#D8D1C3] p-8 sm:p-12 text-center">
                 <FileText className="h-8 w-8 text-[#98948C] mx-auto mb-3" />
                 <p className="font-display font-bold text-base text-[#111215]">No print orders placed yet</p>
@@ -247,11 +267,11 @@ async function DashboardContent() {
             <div className="px-5 py-4 space-y-3">
               <div className="flex justify-between items-center">
                 <span className="font-mono-code text-xs text-white/70">B&W per page</span>
-                <span className="font-display text-2xl font-black text-white">Rs.3</span>
+                <span className="font-display text-2xl font-black text-white">Rs.{bwPrice}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="font-mono-code text-xs text-white/70">Colour per page</span>
-                <span className="font-display text-2xl font-black text-[#60A5FA]">Rs.5</span>
+                <span className="font-display text-2xl font-black text-[#60A5FA]">Rs.{colourPrice}</span>
               </div>
             </div>
           </div>

@@ -1,8 +1,39 @@
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import { PRODUCTION_APP_URL } from '@/lib/constants';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
+}
+
+/**
+ * Resolves the fully qualified base URL for the application.
+ * Prioritizes:
+ * 1. NEXT_PUBLIC_APP_URL environment variable
+ * 2. Vercel deployment variables (NEXT_PUBLIC_VERCEL_URL / VERCEL_URL)
+ * 3. Browser runtime window.location.origin
+ * 4. Production fallback: https://kairo-live.vercel.app
+ * 5. Development mode fallback: http://localhost:3000
+ */
+export function getAppUrl(): string {
+  if (process.env.NEXT_PUBLIC_APP_URL) {
+    return process.env.NEXT_PUBLIC_APP_URL.replace(/\/$/, '');
+  }
+
+  const vercelUrl = process.env.NEXT_PUBLIC_VERCEL_URL || process.env.VERCEL_URL;
+  if (vercelUrl) {
+    return `https://${vercelUrl.replace(/\/$/, '')}`;
+  }
+
+  if (typeof window !== 'undefined' && window.location?.origin) {
+    return window.location.origin;
+  }
+
+  if (process.env.NODE_ENV === 'development') {
+    return 'http://localhost:3000';
+  }
+
+  return PRODUCTION_APP_URL;
 }
 
 export function formatFileSize(bytes: number): string {

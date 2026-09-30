@@ -30,6 +30,17 @@ export default async function ProfilePage() {
     .eq('student_id', user!.id)
     .order('created_at', { ascending: false });
 
+  // Fetch current live pricing
+  const { data: pricingData } = await supabase
+    .from('pricing_config')
+    .select('bw_price_per_page, colour_price_per_page')
+    .order('id', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const bwPrice = pricingData?.bw_price_per_page != null ? Number(pricingData.bw_price_per_page) : 3;
+  const colourPrice = pricingData?.colour_price_per_page != null ? Number(pricingData.colour_price_per_page) : 5;
+
   const totalOrders = orders?.length ?? 0;
   const totalSpent = orders?.reduce((sum, o) => sum + (o.total_amount ?? 0), 0) ?? 0;
   const completedOrders = orders?.filter(o => o.status === 'completed').length ?? 0;
@@ -149,7 +160,7 @@ export default async function ProfilePage() {
 
               <div className="mt-6 pt-4 border-t border-dashed border-[#CFC7BB]">
                 <p className="font-mono-code text-[11px] text-[#98948C] text-center">
-                  Authorized for subsidized campus print rates &mdash; Rs.3 B&amp;W &middot; Rs.5 Colour
+                  Authorized for subsidized campus print rates &mdash; Rs.{bwPrice} B&amp;W &middot; Rs.{colourPrice} Colour
                 </p>
               </div>
             </div>

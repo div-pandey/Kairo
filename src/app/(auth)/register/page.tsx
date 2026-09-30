@@ -8,8 +8,8 @@ import { Eye, EyeOff, Upload, ArrowRight, Check, X, CreditCard, AlertCircle, Shi
 import { COLLEGE_YEARS, KCC_PROGRAMMES } from '@/lib/constants';
 
 const SECTION_SUBS: Record<string, string[]> = {
-  A: ['A1','A2','A3','A4','A5','A6','A7','A8','A9','A10'],
-  B: ['B1','B2','B3','B4','B5','B6','B7','B8','B9','B10','B11'],
+  A: ['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10'],
+  B: ['B1', 'B2', 'B3', 'B4', 'B5', 'B6', 'B7', 'B8', 'B9', 'B10', 'B11'],
 };
 
 const STORAGE_KEY = 'kairo_registration_draft_v1';
@@ -53,7 +53,7 @@ export default function RegisterPage() {
           password: '',
         }));
       }
-    } catch {}
+    } catch { }
   }, []);
 
   // Password strength 0-4
@@ -101,7 +101,7 @@ export default function RegisterPage() {
           const { password: _p, ...safeToStore } = next;
           sessionStorage.setItem(STORAGE_KEY, JSON.stringify(safeToStore));
         }
-      } catch {}
+      } catch { }
       return next;
     });
   };
@@ -181,7 +181,7 @@ export default function RegisterPage() {
         if (typeof window !== 'undefined') {
           sessionStorage.removeItem(STORAGE_KEY);
         }
-      } catch {}
+      } catch { }
 
       router.push('/dashboard');
       router.refresh();
@@ -361,9 +361,8 @@ export default function RegisterPage() {
                       }}
                       onBlur={() => validateMobile(form.mobileNumber)}
                       placeholder="9876543210"
-                      className={`w-full bg-[#FBF9F5] border ${
-                        mobileError ? 'border-[#DC2626] focus:border-[#DC2626]' : 'border-[#CFC7BB] focus:border-[#111215]'
-                      } focus:bg-white text-sm text-[#111215] px-3.5 py-2.5 rounded-none outline-none transition-colors font-mono-code placeholder:text-[#98948C]`}
+                      className={`w-full bg-[#FBF9F5] border ${mobileError ? 'border-[#DC2626] focus:border-[#DC2626]' : 'border-[#CFC7BB] focus:border-[#111215]'
+                        } focus:bg-white text-sm text-[#111215] px-3.5 py-2.5 rounded-none outline-none transition-colors font-mono-code placeholder:text-[#98948C]`}
                     />
                   </div>
                   {mobileError ? (
@@ -414,10 +413,9 @@ export default function RegisterPage() {
                       update('kccId', val);
                     }}
                     onBlur={() => validateRoll(form.kccId)}
-                    placeholder="e.g. 2504920100231"
-                    className={`w-full bg-[#FBF9F5] border ${
-                      rollError ? 'border-[#DC2626] focus:border-[#DC2626]' : 'border-[#CFC7BB] focus:border-[#111215]'
-                    } focus:bg-white text-sm text-[#111215] px-3.5 py-2.5 rounded-none outline-none transition-colors font-mono-code placeholder:text-[#98948C]`}
+                    placeholder="e.g. 2504920100267"
+                    className={`w-full bg-[#FBF9F5] border ${rollError ? 'border-[#DC2626] focus:border-[#DC2626]' : 'border-[#CFC7BB] focus:border-[#111215]'
+                      } focus:bg-white text-sm text-[#111215] px-3.5 py-2.5 rounded-none outline-none transition-colors font-mono-code placeholder:text-[#98948C]`}
                   />
                   {rollError ? (
                     <p className="mt-1.5 font-mono-code text-xs text-[#DC2626] flex items-center gap-1.5">
@@ -475,7 +473,7 @@ export default function RegisterPage() {
                               const { password: _p, ...safeToStore } = next;
                               sessionStorage.setItem(STORAGE_KEY, JSON.stringify(safeToStore));
                             }
-                          } catch {}
+                          } catch { }
                           return next;
                         });
                       }}
@@ -573,7 +571,7 @@ export default function RegisterPage() {
                     className="w-full bg-[#FBF9F5] border border-[#CFC7BB] focus:border-[#111215] focus:bg-white text-sm text-[#111215] px-3.5 py-2.5 rounded-none outline-none transition-colors font-mono-code placeholder:text-[#98948C]"
                   />
                   <p className="mt-1 font-mono-code text-[11px] text-[#98948C]">
-                    Your primary lecture hall or classroom number (required)
+                    Your primary lecture hall or classroom number (if unsure, write &apos;N/A&apos;)
                   </p>
                 </div>
 
@@ -605,9 +603,8 @@ export default function RegisterPage() {
                       }}
                       onBlur={() => validateEmail(form.email)}
                       placeholder="rahul.kcc@gmail.com"
-                      className={`w-full bg-[#FBF9F5] border ${
-                        emailError ? 'border-[#DC2626]' : 'border-[#CFC7BB] focus:border-[#111215]'
-                      } focus:bg-white text-sm text-[#111215] px-3.5 py-2.5 rounded-none outline-none transition-colors font-mono-code placeholder:text-[#98948C]`}
+                      className={`w-full bg-[#FBF9F5] border ${emailError ? 'border-[#DC2626]' : 'border-[#CFC7BB] focus:border-[#111215]'
+                        } focus:bg-white text-sm text-[#111215] px-3.5 py-2.5 rounded-none outline-none transition-colors font-mono-code placeholder:text-[#98948C]`}
                     />
                     {emailError && (
                       <p className="mt-1.5 font-mono-code text-xs text-[#DC2626] flex items-center gap-1.5">
@@ -640,9 +637,8 @@ export default function RegisterPage() {
                         }}
                         onBlur={() => validatePassword(form.password)}
                         placeholder="Minimum 8 characters"
-                        className={`w-full bg-[#FBF9F5] border ${
-                          passwordError ? 'border-[#DC2626]' : 'border-[#CFC7BB] focus:border-[#111215]'
-                        } focus:bg-white text-sm text-[#111215] px-3.5 py-2.5 pr-10 rounded-none outline-none transition-colors font-mono-code placeholder:text-[#98948C]`}
+                        className={`w-full bg-[#FBF9F5] border ${passwordError ? 'border-[#DC2626]' : 'border-[#CFC7BB] focus:border-[#111215]'
+                          } focus:bg-white text-sm text-[#111215] px-3.5 py-2.5 pr-10 rounded-none outline-none transition-colors font-mono-code placeholder:text-[#98948C]`}
                       />
                       <button
                         type="button"
@@ -701,13 +697,12 @@ export default function RegisterPage() {
                         }}
                         onBlur={() => validateConfirm(confirmPassword)}
                         placeholder="Re-enter your password"
-                        className={`w-full bg-[#FBF9F5] border ${
-                          confirmError
+                        className={`w-full bg-[#FBF9F5] border ${confirmError
                             ? 'border-[#DC2626]'
                             : confirmPassword && confirmPassword === form.password
-                            ? 'border-[#15803D]'
-                            : 'border-[#CFC7BB] focus:border-[#111215]'
-                        } focus:bg-white text-sm text-[#111215] px-3.5 py-2.5 pr-10 rounded-none outline-none transition-colors font-mono-code placeholder:text-[#98948C]`}
+                              ? 'border-[#15803D]'
+                              : 'border-[#CFC7BB] focus:border-[#111215]'
+                          } focus:bg-white text-sm text-[#111215] px-3.5 py-2.5 pr-10 rounded-none outline-none transition-colors font-mono-code placeholder:text-[#98948C]`}
                       />
                       <button
                         type="button"
@@ -745,8 +740,12 @@ export default function RegisterPage() {
                     const isPasswordValid = validatePassword(form.password);
                     const isConfirmValid = validateConfirm(confirmPassword);
 
-                    if (!form.fullName || !form.mobileNumber || !form.kccId || !form.year || !form.section || !form.subSection || !form.className || !form.classroomNumber) {
-                      setError('Please complete all required fields including mobile number, programme, sub-section, and classroom number.');
+                    const hasSubSections = Boolean(form.section && SECTION_SUBS[form.section]?.length);
+
+                    if (!form.fullName || !form.mobileNumber || !form.kccId || !form.year || !form.section || (hasSubSections && !form.subSection) || !form.className || !form.classroomNumber) {
+                      setError(hasSubSections && !form.subSection
+                        ? 'Please select your sub-section.'
+                        : 'Please complete all required fields including mobile number, programme, and classroom number.');
                       return;
                     }
 

@@ -108,6 +108,7 @@ export function OrderRealtimeView({ order: initialOrder, isNew, paymentResult, i
   
   // Modals
   const [showPassModal, setShowPassModal] = useState(false);
+  const [passCopied, setPassCopied] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [cancelling, setCancelling] = useState(false);
   const [cancelError, setCancelError] = useState<string | null>(null);
@@ -621,17 +622,46 @@ export function OrderRealtimeView({ order: initialOrder, isNew, paymentResult, i
             </div>
 
             {/* Modal Actions */}
-            <div className="flex gap-2 pt-1">
+            <div className="space-y-2 pt-1">
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => window.print()}
+                  className="flex-1 inline-flex items-center justify-center gap-1.5 bg-[#111215] hover:bg-[#1D4ED8] text-white text-xs font-bold uppercase tracking-wider py-2.5 transition-colors cursor-pointer"
+                >
+                  <Printer className="h-3.5 w-3.5" />
+                  <span>Print Pass</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    const passText = `Kairo Campus Print Pass\nOrder #: ${initialOrder.order_number}\nAmount: ${formatCurrency(initialOrder.total_amount)}\nStatus: ${ORDER_STATUS_LABELS[status]}\nCounter: Ground Floor Printing Desk\nTrack: ${window.location.origin}/orders/${initialOrder.id}`;
+                    if (navigator.share) {
+                      try {
+                        await navigator.share({
+                          title: `Pickup Pass - ${initialOrder.order_number}`,
+                          text: passText,
+                          url: window.location.href,
+                        });
+                        return;
+                      } catch {}
+                    }
+                    try {
+                      await navigator.clipboard.writeText(passText);
+                      setPassCopied(true);
+                      setTimeout(() => setPassCopied(false), 2500);
+                    } catch {}
+                  }}
+                  className="flex-1 inline-flex items-center justify-center gap-1.5 border border-[#111215] hover:bg-[#FBF9F5] text-[#111215] text-xs font-bold uppercase tracking-wider py-2.5 transition-colors cursor-pointer"
+                >
+                  <Share2 className="h-3.5 w-3.5" />
+                  <span>{passCopied ? 'Copied!' : 'Share Pass'}</span>
+                </button>
+              </div>
               <button
-                onClick={() => window.print()}
-                className="flex-1 inline-flex items-center justify-center gap-1.5 bg-[#111215] hover:bg-[#1D4ED8] text-white text-xs font-bold uppercase tracking-wider py-2.5 transition-colors cursor-pointer"
-              >
-                <Printer className="h-3.5 w-3.5" />
-                <span>Print Pass</span>
-              </button>
-              <button
+                type="button"
                 onClick={() => setShowPassModal(false)}
-                className="flex-1 inline-flex items-center justify-center border border-[#CFC7BB] text-[#111215] text-xs font-bold uppercase tracking-wider py-2.5 hover:bg-[#FBF9F5] transition-colors cursor-pointer"
+                className="w-full inline-flex items-center justify-center border border-[#CFC7BB] text-[#65625D] hover:text-[#111215] text-xs font-semibold py-2 hover:bg-[#FBF9F5] transition-colors cursor-pointer"
               >
                 Close
               </button>

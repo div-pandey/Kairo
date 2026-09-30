@@ -80,10 +80,16 @@ Respond ONLY with valid JSON in this exact structure with no extra text or markd
     };
   } catch (err: any) {
     console.error('[Gemini Vision] Verification exception:', err);
-    // Graceful fallback: do not block student if Gemini API encounters temporary rate limit or error
+    // If Gemini fails (rate limit, network error), do NOT silently approve.
+    // Return failure so the student gets a clear error and can retry.
+    // Exception: if API key is simply not configured (dev environment), pass through.
+    const isDevBypass = !process.env.GEMINI_API_KEY || process.env.GEMINI_API_KEY.includes('replace-with');
+    if (isDevBypass) {
+      return { isValid: true, reason: 'AI verification skipped (dev mode — GEMINI_API_KEY not set)' };
+    }
     return {
-      isValid: true,
-      reason: `Verification fallback: ${err.message || 'service check passed'}`,
+      isValid: false,
+      reason: 'ID verification service is temporarily unavailable. Please try again in a few moments.',
     };
   }
 }

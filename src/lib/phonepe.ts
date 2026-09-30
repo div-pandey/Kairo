@@ -1,4 +1,4 @@
-﻿/**
+/**
  * src/lib/phonepe.ts
  * PhonePe Payment Gateway helper
  *
@@ -11,12 +11,13 @@
  */
 
 import crypto from 'crypto';
+import { getAppUrl } from '@/lib/utils';
 
 const PHONEPE_MERCHANT_ID  = process.env.PHONEPE_MERCHANT_ID  ?? '';
 const PHONEPE_SALT_KEY     = process.env.PHONEPE_SALT_KEY     ?? '';
 const PHONEPE_SALT_INDEX   = process.env.PHONEPE_SALT_INDEX   ?? '1';
 const PHONEPE_ENV          = process.env.PHONEPE_ENV          ?? 'UAT';
-const APP_URL              = process.env.NEXT_PUBLIC_APP_URL  ?? 'http://localhost:3000';
+const APP_URL              = getAppUrl();
 
 const PHONEPE_URLS = {
   UAT:        'https://api-preprod.phonepe.com/apis/pg-sandbox',

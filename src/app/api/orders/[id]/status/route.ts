@@ -99,6 +99,7 @@ export async function PATCH(req: NextRequest, { params }: Props) {
           studentName,
           orderNumber: (updatedOrder as any).order_number,
           status,
+          orderId: (updatedOrder as any).id,
         }).catch(console.error);
       }
     } catch (notifErr) {

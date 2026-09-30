@@ -2,8 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { createClient } from '@/lib/supabase/client';
-import { ArrowLeft, ArrowRight, CheckCircle2, Mail, Loader2, AlertCircle } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CheckCircle2, Loader2, AlertCircle } from 'lucide-react';
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
@@ -24,15 +23,15 @@ export default function ForgotPasswordPage() {
     }
 
     try {
-      const supabase = createClient();
-      const redirectUrl = `${window.location.origin}/auth/callback?next=/reset-password`;
-
-      const { error: resetError } = await supabase.auth.resetPasswordForEmail(cleanEmail, {
-        redirectTo: redirectUrl,
+      const res = await fetch('/api/auth/send-reset-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: cleanEmail }),
       });
 
-      if (resetError) {
-        setError(resetError.message || 'Could not send password recovery link.');
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setError(data.error || 'Could not send password recovery link. Please try again.');
         setLoading(false);
         return;
       }
@@ -48,7 +47,7 @@ export default function ForgotPasswordPage() {
   return (
     <div className="w-full max-w-md">
       <div className="bg-white border border-[#D8D1C3] p-5 sm:p-10 shadow-[0_4px_20px_-4px_rgba(25,20,15,0.06)] rounded-sm">
-        
+
         {/* Header */}
         <div className="mb-8 border-b border-[#E5DFD5] pb-5">
           <p className="font-mono-code text-[11px] font-semibold text-[#65625D] uppercase tracking-wider mb-1">
@@ -70,7 +69,7 @@ export default function ForgotPasswordPage() {
                 <span>Recovery Link Sent</span>
               </div>
               <p className="text-xs font-mono-code leading-relaxed">
-                We have dispatched a password recovery email to <strong>{email}</strong>. Check your inbox and spam folder, then click the link to set a new password.
+                We have dispatched a password recovery email to <strong>{email}</strong>. Check your inbox, then click the link to set a new password.
               </p>
             </div>
 

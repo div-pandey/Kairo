@@ -14,8 +14,10 @@ export const ADMIN_EMAIL = 'div.pandey.html@gmail.com';
 export const APP_NAME = 'Kairo';
 export const APP_TAGLINE = 'Print what you need. Pay only for what you print.';
 export const COLLEGE_NAME = 'KCC Institute of Technology and Management';
+export const PRODUCTION_APP_URL = 'https://kairo-live.vercel.app';
 
 export const MAX_COPIES = 50;
+export const MAX_PAGES = 2500;
 export const MAX_FILES_PER_ORDER = 20;
 export const MAX_FILE_SIZE_MB = 100;
 export const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
