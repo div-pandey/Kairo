@@ -1,4 +1,4 @@
-﻿import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { decodePhonePeCallback, verifyCallbackChecksum } from '@/lib/phonepe';
 
@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: true, message: 'Already processed' });
     }
 
-    const isSuccess = txnState === 'COMPLETED' || txnState === 'SUCCESS';
+    const isSuccess = txnState === 'COMPLETED';
     const newStatus = isSuccess ? 'success' : 'failed';
 
     const { error: updatePaymentError } = await adminClient

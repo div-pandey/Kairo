@@ -1,4 +1,4 @@
-﻿import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { checkPhonePePaymentStatus } from '@/lib/phonepe';
@@ -43,8 +43,9 @@ export async function GET(_req: NextRequest, { params }: Props) {
     }
 
     const phonePeStatus = await checkPhonePePaymentStatus(txnId);
-    const isSuccess = phonePeStatus.status === 'SUCCESS';
-    const isFailed  = phonePeStatus.status === 'FAILURE';
+    // v2 API uses COMPLETED (not SUCCESS) and FAILED (not FAILURE)
+    const isSuccess = phonePeStatus.status === 'COMPLETED';
+    const isFailed  = phonePeStatus.status === 'FAILED' || phonePeStatus.status === 'EXPIRED';
 
     if (isSuccess || isFailed) {
       const newStatus = isSuccess ? 'success' : 'failed';

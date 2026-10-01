@@ -565,7 +565,7 @@ export function OrderRealtimeView({ order: initialOrder, isNew, paymentResult, i
       {/* ── MODAL 1: DIGITAL PICKUP TOKEN / PASS ── */}
       {showPassModal && (
         <div
-          className="fixed inset-0 bg-[#111215]/80 backdrop-blur-xs z-50 flex items-center justify-center p-4 animate-fade-in"
+          className="fixed inset-0 bg-[#111215]/45 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-fade-in"
           onClick={() => setShowPassModal(false)}
         >
           <div
@@ -673,7 +673,7 @@ export function OrderRealtimeView({ order: initialOrder, isNew, paymentResult, i
       {/* ── MODAL 2: CANCEL ORDER CONFIRMATION ── */}
       {showCancelModal && (
         <div
-          className="fixed inset-0 bg-[#111215]/80 backdrop-blur-xs z-50 flex items-center justify-center p-4 animate-fade-in"
+          className="fixed inset-0 bg-[#111215]/45 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-fade-in"
           onClick={() => !cancelling && setShowCancelModal(false)}
         >
           <div

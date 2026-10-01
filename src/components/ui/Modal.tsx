@@ -65,7 +65,7 @@ export function Modal({
         if (e.target === overlayRef.current) onClose();
       }}
     >
-      <div className="fixed inset-0 bg-[#111215]/75 backdrop-blur-xs transition-opacity" />
+      <div className="fixed inset-0 bg-[#111215]/45 backdrop-blur-md transition-opacity" />
       <div
         className={cn(
           'relative z-10 w-full bg-[#FBF9F5] border-2 border-[#111215] shadow-[6px_6px_0px_#111215] sm:shadow-[8px_8px_0px_#111215] animate-fade-in my-auto',
